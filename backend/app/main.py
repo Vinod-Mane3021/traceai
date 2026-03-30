@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 import uvicorn
 from app.core.config import settings
+from app.api.routes.webhooks import router as webhooks_router
 
 app = FastAPI(
     title=settings.APP_NAME,
     description=settings.APP_DESCRIPTION,
     version=settings.APP_VERSION
 )
+
+app.include_router(webhooks_router, prefix="/api/webhooks", tags=["Webhooks"])
 
 @app.get("/")
 async def read_root():

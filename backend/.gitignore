@@ -32,3 +32,5 @@ archive.zip
 .DS_Store
 
 .codspeed
+
+*.pem
