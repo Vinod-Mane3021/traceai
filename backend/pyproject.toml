@@ -1,0 +1,6 @@
+[tool.taskipy.tasks]
+dev = "uvicorn app.main:app --reload"
+start = "uvicorn app.main:app"
+test = "pytest"
+lint = "ruff check ."
+format = "ruff format ."

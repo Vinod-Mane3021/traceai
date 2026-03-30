@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import uvicorn
 from app.core.config import settings
 
 app = FastAPI(
@@ -13,4 +14,8 @@ async def read_root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "service": settings.APP_NAME} 
+    return {"status": "ok", "service": settings.APP_NAME}
+
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host=settings.APP_HOST, port=settings.APP_PORT, reload=True)
+
