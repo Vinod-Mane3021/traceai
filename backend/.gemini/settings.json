@@ -1,0 +1,25 @@
+{
+  "project_name": "Trace AI Backend",
+  "tech_stack": [
+    "FastAPI",
+    "PostgreSQL",
+    "SQLAlchemy 2.0",
+    "Pydantic v2",
+    "Taskipy",
+    "Ruff",
+    "Alembic",
+    "Pytest"
+  ],
+  "default_branch": "main",
+  "ignored_paths": [
+    "**/__pycache__",
+    "**/.venv",
+    "**/.git",
+    "**/migrations/versions/*.py",
+    "**/*.pyc",
+    "**/*.pyo",
+    "**/.pytest_cache",
+    "**/node_modules"
+  ],
+  "contextFileName": "AGENTS.md"
+}
