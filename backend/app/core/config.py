@@ -15,14 +15,18 @@ class Settings(BaseSettings):
     GITHUB_APP_PRIVATE_KEY_PATH: str
     GITHUB_PUBLIC_LINK: str
 
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_HOST: str
-    POSTGRES_PORT: str
-    POSTGRES_DB: str
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_HOST: str | None = None
+    POSTGRES_PORT: str | None = None
+    POSTGRES_DB: str | None = None
+
+    DATABASE_URL_OVERRIDE: str | None = None
 
     @property
     def DATABASE_URL(self) -> str:
+        if self.DATABASE_URL_OVERRIDE:
+            return self.DATABASE_URL_OVERRIDE
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 settings = Settings()

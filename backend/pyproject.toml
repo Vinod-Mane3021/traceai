@@ -8,3 +8,4 @@ format = "ruff format ."
 init_alembic = "alembic init -t async alembic"
 table_update = 'alembic revision --autogenerate -m "Initial tables for repos, PRs, and vulns"'
 db_push = "alembic upgrade head"
+db_sync = "python scripts/sync_db.py"
