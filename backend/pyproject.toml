@@ -4,6 +4,7 @@ start = "uvicorn app.main:app"
 test = "pytest"
 lint = "ruff check ."
 format = "ruff format ."
+update_req_file = "pip freeze > requirements.txt"
 
 init_alembic = "alembic init -t async alembic"
 table_update = 'alembic revision --autogenerate -m "Initial tables for repos, PRs, and vulns"'

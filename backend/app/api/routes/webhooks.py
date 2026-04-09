@@ -33,6 +33,8 @@ async def handle_github_webhook(
             raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
         try:
+            # print("row_payload_2342")
+            # print(row_payload)
             # We parse the raw JSON body into our strict Pydantic model
             payload = PullRequestWebhookPayload(**row_payload)
         except Exception as e:
