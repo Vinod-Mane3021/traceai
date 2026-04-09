@@ -15,8 +15,9 @@ def generate_github_app_jwt() -> str:
         "iss": settings.GITHUB_APP_ID
     }
 
-    # Ensure the private key is properly formatted
-    private_key = settings.GITHUB_APP_PRIVATE_KEY_PATH.replace("\\n", "\n")
+    # Read the private key from the file path
+    with open(settings.GITHUB_APP_PRIVATE_KEY_PATH, "r") as f:
+        private_key = f.read()
 
     algorithm = "RS256"
 
