@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     GITHUB_APP_PRIVATE_KEY_PATH: str
     GITHUB_PUBLIC_LINK: str
 
+    OPENAI_API_KEY: str
+    LITELLM_MODEL: str
+
     POSTGRES_USER: str | None = None
     POSTGRES_PASSWORD: str | None = None
     POSTGRES_HOST: str | None = None

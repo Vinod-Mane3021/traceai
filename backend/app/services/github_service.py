@@ -1,7 +1,10 @@
+import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.github import PullRequestWebhookPayload
 from app.repositories.github_repo import GitHubRepository
+from app.utils.diff_processor import parse_and_filter_diff
 from app.utils.github_client import AsyncGithubClient
+from app.services.ai_service import analyze_code_chunk
 
 async def process_pull_request_event(payload: PullRequestWebhookPayload, db: AsyncSession):
     """Core business logic for handling incoming PRs."""
@@ -12,8 +15,6 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
     repo_name = payload.repository.name
     pr_number = payload.pull_request.number
 
-
-    
     repo_payer = GitHubRepository(db)
 
     # 2. Ensure the repository exists in our database
@@ -35,6 +36,31 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
         print(f"Successfully fetched diff for PR #{pr_number}. Length: {len(raw_diff)} characters.")
         print(raw_diff)
         # TODO: The next step will be passing this 'raw_diff' to the chunking/AI service.
+        
+        # 5. Filter and Chunk the Diff
+        chunks = parse_and_filter_diff(raw_diff)
+        print(f"Found {len(chunks)} analyzable files in PR #{pr_number}")
+
+        # 6. Analyze all chunks concurrently
+        # This fires off all API calls to liteLLM provider at the exact same time!
+        tasks = [
+            analyze_code_chunk(chunk["filename"], chunk["content"]) for chunk in chunks
+        ]
+        ai_results = await asyncio.gather(*tasks)
+
+        # 7. Aggregate the findings
+        all_vulnerabilities = []
+        for result in ai_results:
+            all_vulnerabilities.extend(result.get("vulnerabilities", []))
+
+        print(f"Analysis Complete! Found {len(all_vulnerabilities)} total vulnerabilities.")
+
+        if all_vulnerabilities:
+            # Just printing for now to test. Next feature will push these to GitHub!
+            print(f"Vulnerabilities found: {len(all_vulnerabilities)}")
+            print(all_vulnerabilities)
+            # print(json.dumps(all_vulnerabilities, indent=2))
+
     except Exception as e:
         print(f"❌ Failed to fetch PR diff: {type(e).__name__}: {e}")
         # Here you would typically log the error and maybe update the PR status to 'errored'
