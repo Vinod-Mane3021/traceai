@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_ID: str
     GITHUB_APP_PRIVATE_KEY_PATH: str
     GITHUB_PUBLIC_LINK: str
+    GITHUB_CLIENT_SECRET: str
 
     OPENAI_API_KEY: str
     LITELLM_MODEL: str

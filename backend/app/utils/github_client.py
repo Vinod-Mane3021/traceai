@@ -115,3 +115,34 @@ class AsyncGithubClient:
             response.raise_for_status() 
             log.info("post_review_success", message=f"Successfully posted security review to PR #{pr_number}")
 
+    async def set_commit_status(self, owner: str, repo: str, sha: str, state: str, description: str):
+        """
+        Sets the commit status check for a specific SHA.
+        state must be one of: 'pending', 'success', 'failure', 'error'
+        """
+        log = self.log.bind(repo=f"{owner}/{repo}", sha=sha)
+        token = await self._get_installation_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+
+        payload = {
+            "state": state,
+            "description": description[:140], # GitHub limits descriptions to 140 chars
+            "context": "Trace AI Security Audit" # This is the official name that appears in the PR UI
+        }
+
+        log.info("setting_commit_status", message=f"Setting commit status to '{state}' for SHA {sha}")
+        async with httpx.AsyncClient() as client:
+            endpoint = f"{self.base_url}/repos/{owner}/{repo}/statuses/{sha}"
+            response = await client.post(endpoint, headers=headers, json=payload)
+
+            if response.status_code != 201:
+                log.error("set_commit_status_failed", 
+                          message=f"Failed to set commit status to '{state}'",
+                          status_code=response.status_code,
+                          response=response.text)
+            
+            response.raise_for_status()
+            log.info("set_commit_status_success", message=f"Successfully set commit status to '{state}'")
