@@ -55,11 +55,22 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
 
         print(f"Analysis Complete! Found {len(all_vulnerabilities)} total vulnerabilities.")
 
+        # 8. Post the Inline Review if vulnerabilities exist
         if all_vulnerabilities:
-            # Just printing for now to test. Next feature will push these to GitHub!
             print(f"Vulnerabilities found: {len(all_vulnerabilities)}")
-            print(all_vulnerabilities)
-            # print(json.dumps(all_vulnerabilities, indent=2))
+            print("Posting inline review to GitHub...")
+            try:
+                await github_client.create_pr_review(
+                    owner=owner,
+                    repo=repo_name,
+                    pr_number=pr_number,
+                    vulnerabilities=all_vulnerabilities
+                )
+                print("Successfully posted security review.")
+            except Exception as e:
+                print(f"❌ Failed to post review: {type(e).__name__}: {e}")
+        else:
+            print("No vulnerabilities found. Code looks secure.")
 
     except Exception as e:
         print(f"❌ Failed to fetch PR diff: {type(e).__name__}: {e}")

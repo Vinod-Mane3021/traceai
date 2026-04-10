@@ -44,5 +44,45 @@ class AsyncGithubClient:
             # Returns the raw diff text
             return response.text
 
+    async def create_pr_review(self, owner: str, repo: str, pr_number: int, vulnerabilities: list[dict]):
+        """
+        Creates a PR review with inline comments for each vulnerability.
+        """
+        token = await self._get_installation_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
 
+        # Format the AI findings into GitHub's expected comment structure
+        comments = []
+        for vuln in vulnerabilities:
+            # Create a markdown-formatted comment body
+            body = f"### 🛡️ Trace AI Security Alert: {vuln['title']}\n"
+            body += f"**Severity:** {vuln['severity'].upper()}\n\n"
+            body += f"{vuln['description']}"
+
+            comments.append({
+                "path": vuln["filename"],
+                "line": vuln["line_number"],
+                "side": "RIGHT", # Comment on the new code side of the diff
+                "body": body
+            })
+
+        # The payload for the Review
+        payload = {
+            "body": "### 🛑 Trace AI Audit Failed\nSecurity vulnerabilities were detected in this Pull Request. Please review the inline comments below.",
+            "event": "REQUEST_CHANGES", # This explicitly requests changes, acting as a soft block
+            "comments": comments
+        }
+
+        async with httpx.AsyncClient() as client:
+            endpoint = f"{self.base_url}/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+            response = await client.post(endpoint, headers=headers, json=payload)
+
+            # If a line number is invalid (e.g., AI hallucinated a line not in the diff), 
+            # GitHub returns a 422 Unprocessable Entity.
+            if response.status_code != 200:
+                print(f"Failed to post review: {response.text}")
+            response.raise_for_status() 
 

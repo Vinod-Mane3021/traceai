@@ -17,12 +17,14 @@ You MUST respond strictly in valid JSON format using the following schema:
     "vulnerabilities": [
         {
             "filename": "path/to/file",
+            "line_number": 42,
             "severity": "high|medium|low",
             "title": "Short title of issue",
             "description": "Detailed explanation of the vulnerability and how to fix it."
         }
     ]
 }
+IMPORTANT: "line_number" MUST be the exact line number from the NEW code (the right side of the diff) where the vulnerability exists.
 If no vulnerabilities are found, return an empty array for "vulnerabilities".
 """
 
