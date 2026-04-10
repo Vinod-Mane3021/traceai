@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     APP_PORT: int = 8000
     APP_HOST: str = "0.0.0.0"
 
+    # Logging
+    LOG_LEVEL: str = "INFO"
+    LOG_JSON_FORMAT: bool = False
+
     GITHUB_WEBHOOK_SECRET: str
     GITHUB_APP_ID: str
     GITHUB_CLIENT_ID: str

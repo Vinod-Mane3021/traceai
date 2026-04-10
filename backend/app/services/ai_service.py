@@ -1,8 +1,11 @@
 import json
 import asyncio
+import structlog
 from litellm import acompletion
 from app.core.config import settings
 import os
+
+logger = structlog.get_logger(__name__)
 
 # LiteLLM reads from environment variables automatically. 
 # You can also set them explicitly if they aren't in your env:
@@ -32,7 +35,9 @@ async def analyze_code_chunk(filename: str, diff_content: str) -> dict:
     """
     Sends a specific file's diff to the LLM for security analysis using LiteLLM.
     """
+    log = logger.bind(filename=filename)
     try:
+        log.info("ai_request_sent", message=f"Sending AI analysis request for {filename}")
         # acompletion handles the async request across ANY provider
         response = await acompletion(
             model=settings.LITELLM_MODEL,
@@ -48,8 +53,18 @@ async def analyze_code_chunk(filename: str, diff_content: str) -> dict:
 
         # Accessing content remains identical to the OpenAI SDK structure
         content = response.choices[0].message.content
-        return json.loads(content)
+        result = json.loads(content)
+        
+        vuln_count = len(result.get("vulnerabilities", []))
+        log.info("ai_response_received", 
+                 message=f"Received AI response for {filename}. Found {vuln_count} vulnerabilities", 
+                 vulnerability_count=vuln_count)
+        
+        return result
     except Exception as e:
         # LiteLLM maps all provider errors to standard OpenAI exception types
-        print(f"AI Analysis failed for {filename}: {str(e)}")
+        log.error("ai_analysis_failed", 
+                  message=f"AI Analysis failed for {filename}", 
+                  error=str(e), 
+                  error_type=type(e).__name__)
         return {"vulnerabilities": []}

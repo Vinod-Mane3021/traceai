@@ -1,10 +1,13 @@
 import asyncio
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.github import PullRequestWebhookPayload
 from app.repositories.github_repo import GitHubRepository
 from app.utils.diff_processor import parse_and_filter_diff
 from app.utils.github_client import AsyncGithubClient
 from app.services.ai_service import analyze_code_chunk
+
+logger = structlog.get_logger(__name__)
 
 async def process_pull_request_event(payload: PullRequestWebhookPayload, db: AsyncSession):
     """Core business logic for handling incoming PRs."""
@@ -15,6 +18,13 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
     repo_name = payload.repository.name
     pr_number = payload.pull_request.number
 
+    # Bind common context to all logs in this function
+    log = logger.bind(
+        repo=f"{owner}/{repo_name}",
+        pr_number=pr_number,
+        installation_id=installation_id
+    )
+
     repo_payer = GitHubRepository(db)
 
     # 2. Ensure the repository exists in our database
@@ -23,7 +33,7 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
     # 3. Save or update the Pull Request details
     db_pr = await repo_payer.upsert_pull_request(payload.pull_request, db_repo.id)
 
-    print(f"✅ Successfully saved PR #{db_pr.number} ({db_pr.state}) to the database!")
+    log.info("pr_saved_to_db", message=f"PR #{pr_number} successfully saved to database", state=db_pr.state)
 
     # 4. Fetch the actual code diff
     try:
@@ -33,50 +43,48 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
             repo=repo_name, 
             pr_number=pr_number
         )
-        print(f"Successfully fetched diff for PR #{pr_number}. Length: {len(raw_diff)} characters.")
-        print(raw_diff)
-        # TODO: The next step will be passing this 'raw_diff' to the chunking/AI service.
+        log.info("diff_fetched", message=f"Successfully fetched diff for PR #{pr_number}", diff_length=len(raw_diff))
         
         # 5. Filter and Chunk the Diff
         chunks = parse_and_filter_diff(raw_diff)
-        print(f"Found {len(chunks)} analyzable files in PR #{pr_number}")
+        log.info("diff_chunked", message=f"Split diff into {len(chunks)} analyzable chunks", chunk_count=len(chunks))
 
         # 6. Analyze all chunks concurrently
-        # This fires off all API calls to liteLLM provider at the exact same time!
-        tasks = [
-            analyze_code_chunk(chunk["filename"], chunk["content"]) for chunk in chunks
-        ]
-        ai_results = await asyncio.gather(*tasks)
+        if chunks:
+            log.info("ai_analysis_start", message=f"Starting AI analysis for {len(chunks)} chunks", task_count=len(chunks))
+            tasks = [
+                analyze_code_chunk(chunk["filename"], chunk["content"]) for chunk in chunks
+            ]
+            ai_results = await asyncio.gather(*tasks)
 
-        # 7. Aggregate the findings
-        all_vulnerabilities = []
-        for result in ai_results:
-            all_vulnerabilities.extend(result.get("vulnerabilities", []))
+            # 7. Aggregate the findings
+            all_vulnerabilities = []
+            for result in ai_results:
+                all_vulnerabilities.extend(result.get("vulnerabilities", []))
 
-        print(f"Analysis Complete! Found {len(all_vulnerabilities)} total vulnerabilities.")
+            log.info("ai_analysis_complete", message=f"AI analysis finished. Found {len(all_vulnerabilities)} vulnerabilities", vulnerability_count=len(all_vulnerabilities))
 
-        # 8. Post the Inline Review if vulnerabilities exist
-        if all_vulnerabilities:
-            print(f"Vulnerabilities found: {len(all_vulnerabilities)}")
-            print("Posting inline review to GitHub...")
-            try:
-                await github_client.create_pr_review(
-                    owner=owner,
-                    repo=repo_name,
-                    pr_number=pr_number,
-                    vulnerabilities=all_vulnerabilities
-                )
-                print("Successfully posted security review.")
-            except Exception as e:
-                print(f"❌ Failed to post review: {type(e).__name__}: {e}")
+            # 8. Post the Inline Review if vulnerabilities exist
+            if all_vulnerabilities:
+                log.info("posting_github_review", message=f"Posting review with {len(all_vulnerabilities)} findings to GitHub", count=len(all_vulnerabilities))
+                try:
+                    await github_client.create_pr_review(
+                        owner=owner,
+                        repo=repo_name,
+                        pr_number=pr_number,
+                        vulnerabilities=all_vulnerabilities
+                    )
+                    log.info("github_review_posted_success", message="Security review successfully posted to GitHub")
+                except Exception as e:
+                    log.error("github_review_posted_failed", message="Failed to post security review to GitHub", error=str(e), error_type=type(e).__name__)
+            else:
+                log.info("no_vulnerabilities_found", message="No vulnerabilities found. Code looks secure.")
         else:
-            print("No vulnerabilities found. Code looks secure.")
+            log.info("no_analyzable_chunks_found", message="No analyzable files found in this PR.")
 
     except Exception as e:
-        print(f"❌ Failed to fetch PR diff: {type(e).__name__}: {e}")
-        # Here you would typically log the error and maybe update the PR status to 'errored'
-        # We can choose to either fail silently here or raise an exception depending on how critical this is
-        # For now, let's just log the error and continueAsyncGitHubClient without the diff
+        log.error("process_pr_event_failed", message="Critical error processing PR event", error=str(e), error_type=type(e).__name__)
+        # Here you would typically update the PR status in the DB to 'errored'
 
     return db_pr
     

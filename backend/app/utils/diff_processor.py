@@ -1,4 +1,7 @@
 import re
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 def parse_and_filter_diff(raw_diff: str) -> list[dict]:
     """
@@ -10,7 +13,7 @@ def parse_and_filter_diff(raw_diff: str) -> list[dict]:
     file_diffs = re.split(r'^diff --git ', raw_diff, flags=re.MULTILINE)
 
     # Files to ignore (saves AI tokens and prevents false positives)
-    ignore_extensions = ('.lock', '.svg', '.png', '.jpg', '.md', '.csv')
+    ignore_extensions = ('.lock', '.svg', '.png', '.jpg', '.md', '.csv', '.json')
 
     processed_chunks = []
 
@@ -30,7 +33,7 @@ def parse_and_filter_diff(raw_diff: str) -> list[dict]:
 
         # Skip noise files
         if filename.endswith(ignore_extensions):
-            print(f"Skipping noise file: {filename}")
+            logger.debug("skipping_noise_file", message=f"Skipping noise file: {filename}", filename=filename)
             continue
 
         processed_chunks.append({

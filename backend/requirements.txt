@@ -71,3 +71,4 @@ urllib3==2.6.3
 uvicorn==0.42.0
 yarl==1.23.0
 zipp==3.23.0
+structlog==24.4.0
