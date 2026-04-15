@@ -13,18 +13,23 @@ async def get_analytics_overview(
     """
     Aggregates all core metrics into a single payload for the React dashboard landing page.
     """
-
     repo = AnalyticsRepository(db)
 
-    # Run queries concurrently if needed, or await them sequentially
+    # Fetch metrics concurrently or sequentially
+    summary_stats = await repo.get_summary_stats()
     severity_distribution = await repo.get_severity_distribution()
+    status_distribution = await repo.get_status_distribution()
     top_vulnerable_files = await repo.get_top_vulnerable_files()
+    vulnerabilities_by_repo = await repo.get_vulnerabilities_by_repo()
 
     return {
+        "summary": summary_stats,
         "severity_distribution": severity_distribution,
+        "status_distribution": status_distribution,
         "top_vulnerable_files": top_vulnerable_files,
-        # You can easily expand this to include total PRs scanned, etc.
+        "vulnerabilities_by_repo": vulnerabilities_by_repo
     }
+
 
 @router.get("/feed")
 async def get_vulnerability_feed(

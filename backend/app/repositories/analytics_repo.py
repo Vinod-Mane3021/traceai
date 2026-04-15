@@ -36,6 +36,44 @@ class AnalyticsRepository:
             {"file_path": row.file_path, "issue_count": row.issue_count} for row in result
         ]
     
+    async def get_summary_stats(self):
+        """Returns high-level KPI counts."""
+        total_vulns = await self.session.scalar(select(func.count(Vulnerability.id)))
+        total_prs = await self.session.scalar(select(func.count(PullRequest.id)))
+        total_repos = await self.session.scalar(select(func.count(Repository.id)))
+        open_vulns = await self.session.scalar(
+            select(func.count(Vulnerability.id)).where(Vulnerability.status == "open")
+        )
+        
+        return {
+            "total_vulnerabilities": total_vulns or 0,
+            "total_prs_scanned": total_prs or 0,
+            "total_repos_monitored": total_repos or 0,
+            "open_vulnerabilities": open_vulns or 0
+        }
+
+    async def get_status_distribution(self):
+        """Returns count of vulnerabilities by their status."""
+        stmt = (
+            select(Vulnerability.status, func.count(Vulnerability.id).label("count"))
+            .group_by(Vulnerability.status)
+        )
+        result = await self.session.execute(stmt)
+        return [{"status": row.status, "count": row.count} for row in result]
+
+    async def get_vulnerabilities_by_repo(self, limit: int = 5):
+        """Returns the most vulnerable repositories."""
+        stmt = (
+            select(Repository.name, func.count(Vulnerability.id).label("count"))
+            .join(PullRequest, Repository.id == PullRequest.repository_id)
+            .join(Vulnerability, PullRequest.id == Vulnerability.pull_request_id)
+            .group_by(Repository.name)
+            .order_by(desc("count"))
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return [{"repo_name": row.name, "count": row.count} for row in result]
+
     async def get_recent_vulnerabilities(self, limit: int = 10):
         """Fetches a feed of the most recent issues for the dashboard."""
         stmt = (
