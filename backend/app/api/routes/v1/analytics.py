@@ -7,7 +7,7 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 @router.get("/overview")
 async def get_analytics_overview(
-    current_user: dict = Depends(get_current_user),
+    # current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
