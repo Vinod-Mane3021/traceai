@@ -1,4 +1,4 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,13 +25,32 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 # ---------------------------------------------------------
 
 # This tells FastAPI to look for an "Authorization: Bearer <token>" header
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/github/callback")
+# We set auto_error=False to handle the logic manually inside get_current_user,
+# which allows it to be fully dynamic based on the settings.
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/auth/github/callback", 
+    auto_error=False
+)
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
+async def get_current_user(token: Optional[str] = Depends(oauth2_scheme)) -> dict:
     """
     Extracts the JWT token from the request header, decodes it, 
     and validates the user's session.
+    
+    If AUTH_MIDDLEWARE_ENABLED is False, authentication is skipped.
     """
+    # Check boolean value (Pydantic handles string "False" to bool False conversion)
+    if not settings.AUTH_MIDDLEWARE_ENABLED:
+        # Return a dummy user for development/testing
+        return {"username": "guest", "is_authenticated": False}
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -50,10 +69,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
         if username is None:
             raise credentials_exception
         
-        # For now, simply returning the parsed username is enough.
-        # TODO: If you add a User table to your DB later, you can use the DB session 
-        # here to fetch the full user record.
-        return {"username": username}
+        return {"username": username, "is_authenticated": True}
     
     except jwt.ExpiredSignatureError:
         raise HTTPException(

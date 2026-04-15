@@ -22,6 +22,7 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str
     JWT_ALGORITHM: str
+    AUTH_MIDDLEWARE_ENABLED: bool = True
 
     OPENAI_API_KEY: str
     LITELLM_MODEL: str

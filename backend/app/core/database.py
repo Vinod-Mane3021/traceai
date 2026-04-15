@@ -4,7 +4,7 @@ from app.core.config import settings
 # Create the async engine
 engine = create_async_engine(
     settings.DATABASE_URL, 
-    echo=True, # Set to True if you want to see all SQL queries printed in the terminal
+    # echo=True, # Set to True if you want to see all SQL queries printed in the terminal
 
     # --- Serverless DB Optimizations (Crucial for Neon) ---
     pool_pre_ping=True,  # Tests the connection before executing a query to prevent disconnect errors
