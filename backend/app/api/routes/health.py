@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -10,6 +11,6 @@ async def health_check():
     """
     return {
         "status": "Healthy",
-        "service": "trace.ai-engine",
-        "version": "1.0.0"
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION
     }

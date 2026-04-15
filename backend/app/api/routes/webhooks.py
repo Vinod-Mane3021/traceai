@@ -8,7 +8,7 @@ from app.services.github_service import process_pull_request_event
 from app.utils.security import verify_github_signature
 from app.schemas.github import PullRequestWebhookPayload
 
-router = APIRouter()
+router = APIRouter(prefix="/api/webhooks", tags=["Webhooks"])
 logger = structlog.get_logger(__name__)
 
 @router.post("/github")
