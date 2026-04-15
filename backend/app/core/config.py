@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     GITHUB_PUBLIC_LINK: str
     GITHUB_CLIENT_SECRET: str
 
+    JWT_SECRET: str
+    JWT_ALGORITHM: str
+
     OPENAI_API_KEY: str
     LITELLM_MODEL: str
 

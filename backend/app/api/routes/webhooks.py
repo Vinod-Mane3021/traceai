@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import structlog
 import traceback
 
-from app.core.database import get_db
+from app.api.dependencies import get_db
 from app.services.github_service import process_pull_request_event
 from app.utils.security import verify_github_signature
 from app.schemas.github import PullRequestWebhookPayload

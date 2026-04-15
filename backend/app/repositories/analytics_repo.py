@@ -20,7 +20,7 @@ class AnalyticsRepository:
             {"severity": row.severity, "count": row.count} for row in result
         ]
 
-    async def get_top_vulnerable_files(self, limit: int = 10):
+    async def get_top_vulnerable_files(self, limit: int = 10) -> list[dict]:
         """Identifies which files are most frequently flagged for security issues."""
         stmt = (
             select(
