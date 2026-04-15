@@ -5,7 +5,7 @@ import uvicorn
 import structlog
 
 from app.core.config import settings
-from app.api.routes.api import api_router
+from app.api.routes.router import api_router
 from app.core.logging_config import setup_logging
 
 # Initialize logging
