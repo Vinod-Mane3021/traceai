@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_db, get_current_user
 from app.repositories.analytics_repo import AnalyticsRepository
 from app.models.core import Repository,Vulnerability
-from app.utils.pdf_generator import generate_soc2_audit_report
+from app.utils.pdf_generator_html_to_pdf import generate_soc2_audit_report
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
