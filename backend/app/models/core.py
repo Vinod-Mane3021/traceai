@@ -15,6 +15,7 @@ class Repository(Base):
     
     # Relationships
     pull_requests = relationship("PullRequest" , back_populates="repository")
+    custom_rules = relationship("CustomRule", back_populates="repository")
 
 class PullRequest(Base):
     __tablename__ = 'pull_requests'
