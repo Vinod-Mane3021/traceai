@@ -11,131 +11,165 @@ from reportlab.lib import colors
 
 def generate_soc2_audit_report(repo_name: str, vulnerabilities: list, start_date, end_date) -> io.BytesIO:
     """
-    Generates a cleanly formatted, UX-optimized PDF audit report in-memory 
-    using dynamic column widths to prevent LayoutErrors.
-    Safely handles both string and datetime inputs.
+    Generates a sleek, professional PDF audit report using ReportLab.
+    Matches the design of the HTML-based generator for consistency.
     """
     buffer = io.BytesIO()
     
-    # Set up the document with standard 1-inch margins (72 points)
+    # Page setup
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=letter, 
-        leftMargin=72, 
-        rightMargin=72, 
-        topMargin=72, 
-        bottomMargin=72
+        leftMargin=50, 
+        rightMargin=50, 
+        topMargin=60, 
+        bottomMargin=70
     )
     styles = getSampleStyleSheet()
 
-    # --- Custom Typography Styles ---
+    # --- Custom Typography & Styles ---
     title_style = ParagraphStyle(
-        'MainTitle', parent=styles['Heading1'], fontSize=18, spaceAfter=6, alignment=TA_CENTER
+        'MainTitle', 
+        parent=styles['Heading1'], 
+        fontSize=22, 
+        fontName='Helvetica-Bold',
+        spaceAfter=2, 
+        textColor=colors.HexColor("#0f172a")
     )
     subtitle_style = ParagraphStyle(
-        'Subtitle', parent=styles['Heading3'], fontSize=12, textColor=colors.slategray, alignment=TA_CENTER, spaceAfter=20
+        'Subtitle', 
+        parent=styles['Normal'], 
+        fontSize=10, 
+        textColor=colors.HexColor("#64748b"), 
+        textTransform='uppercase',
+        letterSpacing=1.2,
+        spaceAfter=30
     )
-    normal_style = styles["Normal"]
+    meta_label_style = ParagraphStyle(
+        'MetaLabel', 
+        parent=styles['Normal'], 
+        fontSize=9, 
+        fontName='Helvetica-Bold',
+        textColor=colors.HexColor("#475569"),
+        letterSpacing=0.5
+    )
+    meta_value_style = ParagraphStyle(
+        'MetaValue', 
+        parent=styles['Normal'], 
+        fontSize=10, 
+        fontName='Helvetica-Bold',
+        textColor=colors.HexColor("#0f172a")
+    )
     
     elements = []
 
-    # --- 1. Document Header ---
-    elements.append(Paragraph("<b>Trace AI</b> - SOC2 Security Audit Log", title_style))
-    elements.append(Paragraph("Automated Vulnerability Intervention Report", subtitle_style))
+    # --- 1. Page Decoration (Blue Top Border) ---
+    def add_page_decorations(canvas, doc):
+        canvas.saveState()
+        # Blue top border
+        canvas.setFillColor(colors.HexColor("#2563eb"))
+        canvas.rect(0, letter[1] - 10, letter[0], 10, fill=1, stroke=0)
+        
+        # Footer
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.HexColor("#94a3b8"))
+        canvas.drawString(50, 40, f"© {datetime.now().year} Trace AI. All rights reserved.")
+        
+        canvas.setFont('Helvetica-Bold', 8.5)
+        canvas.setFillColor(colors.HexColor("#2563eb"))
+        canvas.drawCentredString(letter[0]/2, 40, "TraceAI.com")
+        
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.HexColor("#64748b"))
+        canvas.drawRightString(letter[0] - 50, 40, f"Page {doc.page} of 1") # Note: Total pages is complex in ReportLab
+        canvas.restoreState()
 
-    # --- Safe Date Formatting ---
-    # Slices first 10 chars of a string to get 'YYYY-MM-DD' or uses strftime if it's a datetime obj
+    # --- 2. Header ---
+    elements.append(Paragraph("SOC2 Security Audit Log", title_style))
+    elements.append(Paragraph("Automated Intervention Report", subtitle_style))
+
+    # Safe Date Formatting
     start_str = start_date[:10] if isinstance(start_date, str) else start_date.strftime('%Y-%m-%d')
     end_str = end_date[:10] if isinstance(end_date, str) else end_date.strftime('%Y-%m-%d')
+    generated_on = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
-    # --- 2. Metadata Section (Dynamic Proportional Widths) ---
+    # --- 3. Metadata Box (Card Style) ---
     meta_data = [
-        [Paragraph("<b>Repository:</b>", normal_style), Paragraph(repo_name, normal_style)],
-        [Paragraph("<b>Audit Period:</b>", normal_style), Paragraph(f"{start_str} to {end_str}", normal_style)],
-        [Paragraph("<b>Generated On:</b>", normal_style), Paragraph(f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC", normal_style)]
+        [Paragraph("REPOSITORY:", meta_label_style), Paragraph(repo_name, meta_value_style)],
+        [Paragraph("AUDIT PERIOD:", meta_label_style), Paragraph(f"{start_str} — {end_str}", meta_value_style)],
+        [Paragraph("GENERATED ON:", meta_label_style), Paragraph(f"{generated_on} UTC", meta_value_style)]
     ]
     
-    # 20% for labels, 80% for values
-    meta_widths = [doc.width * 0.20, doc.width * 0.80]
-    meta_table = Table(meta_data, colWidths=meta_widths, hAlign='LEFT')
+    meta_table = Table(meta_data, colWidths=[120, doc.width - 120])
     meta_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
+        ('LEFTPADDING', (0, 0), (-1, -1), 20),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('LINEABOVE', (0, 0), (-1, 0), 0, colors.white), # Just to force border
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#e2e8f0")),
+        # Blue left border (simulated)
+        ('LINEBEFORE', (0, 0), (0, -1), 4, colors.HexColor("#2563eb")),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
     ]))
     elements.append(meta_table)
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 25))
 
-    # --- 3. Vulnerability Summary ---
+    # --- 4. Content ---
     if not vulnerabilities:
-        success_style = ParagraphStyle('Success', parent=normal_style, textColor=colors.darkgreen, fontSize=12)
-        elements.append(Paragraph("✅ <b>Status: Clear.</b> No security violations detected during this period.", success_style))
+        elements.append(Paragraph("✓ Status: Clear. No security violations detected during this period.", 
+                                 ParagraphStyle('Success', parent=styles['Normal'], textColor=colors.HexColor("#065f46"), fontSize=11, fontName='Helvetica-Bold')))
     else:
-        # Calculate Metrics
         high_count = sum(1 for v in vulnerabilities if v.severity.lower() == "high")
         other_count = len(vulnerabilities) - high_count
         
-        summary_text = f"<b>Total Interventions: {len(vulnerabilities)}</b> "
-        summary_text += f"(<font color='red'>High: {high_count}</font> | <font color='orange'>Medium/Low: {other_count}</font>)"
+        summary_text = f"<b>TOTAL INTERVENTIONS: {len(vulnerabilities)}</b> &nbsp;&nbsp; "
+        summary_text += f"<font color='#b91c1c'>High: {high_count}</font> &nbsp;&nbsp; "
+        summary_text += f"<font color='#b45309'>Medium/Low: {other_count}</font>"
         
-        elements.append(Paragraph(summary_text, styles['Heading3']))
-        elements.append(Spacer(1, 10))
+        elements.append(Paragraph(summary_text, styles['Normal']))
+        elements.append(Spacer(1, 15))
 
-        # --- 4. Vulnerability Data Table ---
+        # Data Table
         table_data = [[
-            Paragraph("<b>Date</b>", normal_style),
-            Paragraph("<b>Severity</b>", normal_style),
-            Paragraph("<b>Location</b>", normal_style),
-            Paragraph("<b>Description</b>", normal_style)
+            Paragraph("<b>DATE</b>", styles['Normal']),
+            Paragraph("<b>SEVERITY</b>", styles['Normal']),
+            Paragraph("<b>LOCATION</b>", styles['Normal']),
+            Paragraph("<b>DESCRIPTION</b>", styles['Normal'])
         ]]
 
-        # Populate table rows
         for vuln in vulnerabilities:
-            # Format Date Safely (in case vuln.created_at is also returning a string from SQLAlchemy)
-            vuln_date_str = vuln.created_at[:10] if isinstance(vuln.created_at, str) else vuln.created_at.strftime('%Y-%m-%d')
-            date_p = Paragraph(vuln_date_str, normal_style)
+            date_str = vuln.created_at[:10] if isinstance(vuln.created_at, str) else vuln.created_at.strftime('%Y-%m-%d')
             
-            # Format Severity with color
-            is_high = vuln.severity.lower() == "high"
-            sev_color = colors.red if is_high else colors.darkorange
-            sev_style = ParagraphStyle('Sev', parent=normal_style, textColor=sev_color, fontName="Helvetica-Bold")
-            sev_p = Paragraph(vuln.severity.upper(), sev_style)
+            # Severity color coding
+            sev_color = "#b91c1c" if vuln.severity.lower() == "high" else "#b45309"
+            sev_bg = "#fef2f2" if vuln.severity.lower() == "high" else "#fffbeb"
             
-            # Format Location 
-            loc_p = Paragraph(f"{vuln.file_path}<br/><font color='gray'>Line {vuln.line_number}</font>", normal_style)
-            
-            # Format Description
-            desc_p = Paragraph(vuln.description, normal_style)
+            table_data.append([
+                Paragraph(date_str, styles['Normal']),
+                Paragraph(f"<font color='{sev_color}'><b>{vuln.severity.upper()}</b></font>", styles['Normal']),
+                Paragraph(f"<b>{vuln.file_path}</b><br/><font color='#64748b' size='8'>Line {vuln.line_number}</font>", styles['Normal']),
+                Paragraph(vuln.description, styles['Normal'])
+            ])
 
-            table_data.append([date_p, sev_p, loc_p, desc_p])
-
-        # Distribute the columns proportionally based on the document's usable width
-        vuln_widths = [doc.width * 0.14, doc.width * 0.13, doc.width * 0.30, doc.width * 0.43]
-        
-        vuln_table = Table(table_data, colWidths=vuln_widths, repeatRows=1)
-        
-        # Apply Table Styling
-        table_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f4f4f5")),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-            ('TOPPADDING', (0, 0), (-1, 0), 8),
-            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
+        vuln_table = Table(table_data, colWidths=[doc.width * 0.15, doc.width * 0.15, doc.width * 0.30, doc.width * 0.40], repeatRows=1)
+        vuln_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f8fafc")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor("#334155")),
+            ('FONTSIZE', (0, 0), (-1, 0), 8.5),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('TOPPADDING', (0, 0), (-1, 0), 12),
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#cbd5e1")),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.lightgrey),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.lightgrey),
-        ])
-        
-        # Add Zebra Striping logic
-        for i in range(1, len(table_data)):
-            if i % 2 == 0:
-                table_style.add('BACKGROUND', (0, i), (-1, i), colors.HexColor("#fafafa"))
-
-        vuln_table.setStyle(table_style)
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 10),
+            ('TOPPADDING', (0, 1), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
+        ]))
         elements.append(vuln_table)
 
-    # --- Build and Return ---
-    doc.build(elements)
+    # --- Build ---
+    doc.build(elements, onFirstPage=add_page_decorations, onLaterPages=add_page_decorations)
     buffer.seek(0)
     return buffer
     
