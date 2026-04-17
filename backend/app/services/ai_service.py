@@ -11,10 +11,12 @@ logger = structlog.get_logger(__name__)
 # You can also set them explicitly if they aren't in your env:
 os.environ["OPENAI_API_KEY"] = settings.OPENAI_API_KEY
 
-SYSTEM_PROMPT = """
+BASE_SYSTEM_PROMPT = """
 You are an expert DevSecOps and SOC2 compliance auditor.
 Analyze the provided GitHub code diff. Look for OWASP Top 10 vulnerabilities, hardcoded secrets, and SOC2 compliance violations.
+"""
 
+SYSTEM_PROMPT = """
 You MUST respond strictly in valid JSON format using the following schema:
 {
     "vulnerabilities": [
@@ -31,19 +33,28 @@ IMPORTANT: "line_number" MUST be the exact line number from the NEW code (the ri
 If no vulnerabilities are found, return an empty array for "vulnerabilities".
 """
 
-async def analyze_code_chunk(filename: str, diff_content: str) -> dict:
+async def analyze_code_chunk(filename: str, diff_content: str, custom_rules: list[str] = None) -> dict:
     """
     Sends a specific file's diff to the LLM for security analysis using LiteLLM.
     """
     log = logger.bind(filename=filename)
     try:
+        dynamic_prompt = BASE_SYSTEM_PROMPT
+
+        if custom_rules:
+            dynamic_prompt += "\n\nCRITICAL COMPANY-SPECIFIC RULES TO ENFORCE:\n"
+            for i, rule in enumerate(custom_rules, 1):
+                dynamic_prompt += f"{i}. {rule}\n"
+
+        dynamic_prompt += SYSTEM_PROMPT
+
         log.info("ai_request_sent", message=f"Sending AI analysis request for {filename}")
         # acompletion handles the async request across ANY provider
         response = await acompletion(
             model=settings.LITELLM_MODEL,
             response_format={ "type": "json_object" },
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": dynamic_prompt},
                 {"role": "user", "content": f"File: {filename}\n\nDiff:\n{diff_content}"}
             ],
             temperature=0.1, # Lower temperature for more deterministic output

@@ -6,6 +6,7 @@ from app.repositories.github_repo import GitHubRepository
 from app.utils.diff_processor import parse_and_filter_diff
 from app.utils.github_client import AsyncGithubClient
 from app.services.ai_service import analyze_code_chunk
+from app.repositories.rule_repo import RuleRepository
 
 logger = structlog.get_logger(__name__)
 
@@ -42,7 +43,7 @@ async def _sync_pr_to_db(payload: PullRequestWebhookPayload, db: AsyncSession, l
     
     return db_pr
 
-async def _analyze_pr_diff(github_client: AsyncGithubClient, owner: str, repo_name: str, pr_number: int, log: structlog.BoundLogger) -> list[dict]:
+async def _analyze_pr_diff(github_client: AsyncGithubClient, owner: str, repo_name: str, pr_number: int, custom_rules: list[str], log: structlog.BoundLogger) -> list[dict]:
     """
     Fetches the PR diff, filters it into chunks, and processes each chunk concurrently using AI.
     Returns a combined list of all discovered vulnerabilities.
@@ -61,7 +62,7 @@ async def _analyze_pr_diff(github_client: AsyncGithubClient, owner: str, repo_na
     log.info("ai_analysis_start", message=f"Starting AI analysis for {len(chunks)} chunks", task_count=len(chunks))
     
     # Analyze all chunks concurrently
-    tasks = [analyze_code_chunk(chunk["filename"], chunk["content"]) for chunk in chunks]
+    tasks = [analyze_code_chunk(chunk["filename"], chunk["content"], custom_rules) for chunk in chunks]
     ai_results = await asyncio.gather(*tasks)
 
     # Aggregate the findings
@@ -135,8 +136,15 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
     db_pr = await _sync_pr_to_db(payload, db, log)
 
     try:
+        # Fetch custom rules for this specific repository
+        rule_repo = RuleRepository(db)
+        custom_rules = await rule_repo.get_active_rules_for_repo(db_pr.repository_id)
+
+        if custom_rules:
+            log.info("custom_rules_loaded", message=f"Loaded {len(custom_rules)} active custom rules for repository.")
+
         # Analyze code for vulnerabilities and update GitHub statuses/reviews accordingly
-        vulnerabilities = await _analyze_pr_diff(github_client, owner, repo_name, pr_number, log)
+        vulnerabilities = await _analyze_pr_diff(github_client, owner, repo_name, pr_number, custom_rules, log)
         await _report_analysis_results(github_client, owner, repo_name, pr_number, head_sha, vulnerabilities, log)
         
     except Exception as e:

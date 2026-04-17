@@ -48,3 +48,15 @@ class Vulnerability(Base):
     # Relationships
     pull_request = relationship("PullRequest", back_populates="vulnerabilities")
     
+
+class CustomRule(Base):
+    __tablename__ = "custom_rules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    repository_id = Column(Integer, ForeignKey('repositories.id'), nullable=False)
+    rule_text = Column(Text, nullable=False) # e.g., "Never use MD5 hashing, enforce SHA-256."
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    repository = relationship("Repository", back_populates="custom_rules")
