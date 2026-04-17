@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -64,12 +64,15 @@ async def download_soc2_pdf(
     # 2. Fetch Vulnerability Data
     vulnerabilities = await analytics_repo.get_vulnerability_data(repository_id)
 
+    print("vulnerabilities_918234781")
+    print(vulnerabilities)
+
     # 3. Generate PDF
     pdf_buffer = generate_soc2_audit_report(
         repo_name=repo.full_name,
         vulnerabilities=vulnerabilities,
         start_date="2026-01-01", #TODO:  You can pass these dynamically via query params later
-        end_date=datetime.utcnow().strftime('%Y-%m-%d')
+        end_date=datetime.now(timezone.utc).strftime('%Y-%m-%d')
     )
 
     # 4. Stream the file directly to the user's browser
