@@ -84,6 +84,13 @@ class AnalyticsRepository:
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
+    async def get_vulnerability_data(self, repository_id: int):
+        stmt = (
+            select(Vulnerability)
+            .where(Vulnerability.pull_request.has(repository_id=repository_id))
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
 
 
 
