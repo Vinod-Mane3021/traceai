@@ -17,12 +17,12 @@ async def get_analytics_overview(
     Aggregates all core metrics into a single payload for the React dashboard landing page.
     """
     log = logger.bind(user_id=current_user.get("id"), endpoint="get_analytics_overview")
-    log.info("request_received")
+    log.info("analytics_overview_request_received", message="Client requested the analytics overview data")
     
     service = AnalyticsService(db)
     stats = await service.get_overview_stats()
     
-    log.info("request_completed")
+    log.info("analytics_overview_request_completed", message="Analytics overview request successfully served")
     return stats
 
 @router.get("/feed")
@@ -33,12 +33,12 @@ async def get_vulnerability_feed(
 ):
     """Returns the most recent security events."""
     log = logger.bind(user_id=current_user.get("id"), limit=limit, endpoint="get_vulnerability_feed")
-    log.info("request_received")
+    log.info("vulnerability_feed_request_received", message=f"Client requested recent vulnerability feed (limit={limit})")
     
     service = AnalyticsService(db)
     feed = await service.get_vulnerability_feed(limit)
     
-    log.info("request_completed")
+    log.info("vulnerability_feed_request_completed", message="Recent vulnerability feed request successfully served")
     return feed
 
 @router.get("/report/soc2/pdf")
@@ -51,16 +51,16 @@ async def download_soc2_pdf(
     Generates and returns a PDF file containing the SOC2 audit log.
     """
     log = logger.bind(user_id=current_user.get("id"), repository_id=repository_id, endpoint="download_soc2_pdf")
-    log.info("request_received")
+    log.info("soc2_report_download_request_received", message=f"Client requested SOC2 report download for repo_id={repository_id}")
     
     service = AnalyticsService(db)
     pdf_buffer, repo_name = await service.generate_soc2_report(repository_id)
     
     if not pdf_buffer:
-        log.warning("report_generation_failed", reason="repository_not_found")
+        log.warning("soc2_report_download_failed", message="Failed to serve SOC2 report: Repository not found", reason="repository_not_found")
         raise HTTPException(status_code=404, detail="Repository not found")
 
-    log.info("request_completed")
+    log.info("soc2_report_download_completed", message="SOC2 report PDF successfully served to client")
     return StreamingResponse(
         pdf_buffer,
         media_type="application/pdf",

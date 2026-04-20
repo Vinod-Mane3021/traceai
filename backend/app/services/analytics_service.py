@@ -14,7 +14,7 @@ class AnalyticsService:
 
     async def get_overview_stats(self):
         log = logger.bind(method="get_overview_stats")
-        log.info("fetching_overview_stats")
+        log.info("starting_analytics_overview_aggregation", message="Aggregating all core metrics for the dashboard overview")
         
         summary_stats = await self.repo.get_summary_stats()
         severity_distribution = await self.repo.get_severity_distribution()
@@ -22,7 +22,8 @@ class AnalyticsService:
         top_vulnerable_files = await self.repo.get_top_vulnerable_files()
         vulnerabilities_by_repo = await self.repo.get_vulnerabilities_by_repo()
 
-        log.info("overview_stats_fetched", 
+        log.info("analytics_overview_aggregation_completed", 
+                 message="Successfully aggregated analytics overview stats",
                  total_vulns=summary_stats.get("total_vulnerabilities"),
                  open_vulns=summary_stats.get("open_vulnerabilities"))
 
@@ -36,11 +37,11 @@ class AnalyticsService:
 
     async def get_vulnerability_feed(self, limit: int = 10):
         log = logger.bind(method="get_vulnerability_feed", limit=limit)
-        log.info("fetching_vulnerability_feed")
+        log.info("fetching_recent_vulnerabilities_feed", message=f"Retrieving the {limit} most recent security events")
         
         recent_vulnerabilities = await self.repo.get_recent_vulnerabilities(limit)
         
-        log.info("vulnerability_feed_fetched", count=len(recent_vulnerabilities))
+        log.info("recent_vulnerabilities_feed_retrieved", message="Successfully fetched vulnerability feed", count=len(recent_vulnerabilities))
         return {"recent_vulnerabilities": recent_vulnerabilities}
 
     async def generate_soc2_report(self, repository_id: int):
@@ -49,10 +50,10 @@ class AnalyticsService:
         # 1. Verify Repo exists
         repo = await self.db.get(Repository, repository_id)
         if not repo:
-            log.warning("repo_not_found")
+            log.warning("repo_not_found_for_report_generation", message="Failed to generate SOC2 report: Repository not found")
             return None, None
         
-        log.info("generating_soc2_pdf", repo_name=repo.full_name)
+        log.info("starting_soc2_pdf_generation", message=f"Starting SOC2 PDF generation for {repo.full_name}")
         
         # 2. Fetch Vulnerability Data
         vulnerabilities = await self.repo.get_vulnerability_data(repository_id)
@@ -65,5 +66,5 @@ class AnalyticsService:
             end_date=datetime.now(timezone.utc).strftime('%Y-%m-%d')
         )
         
-        log.info("soc2_pdf_generated", repo_name=repo.full_name, vuln_count=len(vulnerabilities))
+        log.info("soc2_pdf_generation_completed", message="Successfully generated SOC2 PDF report", repo_name=repo.full_name, vuln_count=len(vulnerabilities))
         return pdf_buffer, repo.name
