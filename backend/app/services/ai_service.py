@@ -89,6 +89,15 @@ async def analyze_code_chunk(filename: str, diff_content: str, custom_rules: lis
                 log.error("ai_json_parse_failed_no_match", message="Could not find JSON in response")
                 return {"vulnerabilities": []}
 
+        # Ensure the result is a dictionary. 
+        # Sometimes models ignore the schema and return a list of vulnerabilities directly.
+        if isinstance(result, list):
+            log.warning("ai_returned_list", message="AI returned a list instead of a dict, wrapping it automatically.")
+            result = {"vulnerabilities": result}
+        elif not isinstance(result, dict):
+            log.error("ai_returned_invalid_type", message=f"AI returned an unexpected type: {type(result)}")
+            return {"vulnerabilities": []}
+
         vuln_count = len(result.get("vulnerabilities", []))
         log.info("ai_response_received", 
                  message=f"Received AI response for {filename}. Found {vuln_count} vulnerabilities", 

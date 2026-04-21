@@ -158,6 +158,7 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
     
     # Sync repository and PR metadata into the database
     db_pr = await _sync_pr_to_db(payload, db, log)
+    db_pr_id = db_pr.id # Capture early to avoid expiration issues
 
     try:
         # Fetch custom rules for this specific repository
@@ -171,7 +172,7 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
         vulnerabilities = await _analyze_pr_diff(github_client, owner, repo_name, pr_number, custom_rules, log)
         
         # Sync vulnerabilities to our local database
-        await _sync_vulnerabilities_to_db(db_pr.id, vulnerabilities, db, log)
+        await _sync_vulnerabilities_to_db(db_pr_id, vulnerabilities, db, log)
         
         # Report results back to GitHub
         await _report_analysis_results(github_client, owner, repo_name, pr_number, head_sha, vulnerabilities, log)

@@ -16,8 +16,11 @@ class RuleRepository:
         result = await self.session.execute(stmt)
         rules = list(result.scalars().all())
         
-        # End the transaction to avoid holding a connection idle during AI analysis
-        await self.session.rollback()
+        # End the transaction to avoid holding a connection idle during AI analysis.
+        # We use commit() instead of rollback() because rollback() always expires all objects 
+        # in the session, which would cause MissingGreenlet errors when accessing them 
+        # (like db_pr.id) after the AI analysis gap.
+        await self.session.commit()
         
         return rules
         
