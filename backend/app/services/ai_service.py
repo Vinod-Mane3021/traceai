@@ -52,7 +52,8 @@ async def analyze_code_chunk(filename: str, diff_content: str, custom_rules: lis
         # acompletion handles the async request across ANY provider
         response = await acompletion(
             model=settings.LITELLM_MODEL,
-            response_format={ "type": "json_object" },
+            # Removed response_format={"type": "json_object"} as it causes some local models (like Qwen via Ollama) 
+            # to return empty responses. We use robust parsing instead.
             messages=[
                 {"role": "system", "content": dynamic_prompt},
                 {"role": "user", "content": f"File: {filename}\n\nDiff:\n{diff_content}"}
@@ -64,8 +65,30 @@ async def analyze_code_chunk(filename: str, diff_content: str, custom_rules: lis
 
         # Accessing content remains identical to the OpenAI SDK structure
         content = response.choices[0].message.content
-        result = json.loads(content)
         
+        if not content:
+            log.error("ai_analysis_empty_response", message=f"AI returned an empty response for {filename}")
+            return {"vulnerabilities": []}
+
+        # Robust JSON parsing
+        try:
+            # 1. Try direct JSON parsing
+            result = json.loads(content)
+        except json.JSONDecodeError:
+            # 2. Try to extract JSON from markdown blocks if present
+            log.warning("ai_json_parse_failed_direct", message="Direct JSON parsing failed, attempting markdown extraction", raw_content=content)
+            import re
+            json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
+            if json_match:
+                try:
+                    result = json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    log.error("ai_json_parse_failed_markdown", message="JSON parsing from markdown block failed")
+                    return {"vulnerabilities": []}
+            else:
+                log.error("ai_json_parse_failed_no_match", message="Could not find JSON in response")
+                return {"vulnerabilities": []}
+
         vuln_count = len(result.get("vulnerabilities", []))
         log.info("ai_response_received", 
                  message=f"Received AI response for {filename}. Found {vuln_count} vulnerabilities", 
