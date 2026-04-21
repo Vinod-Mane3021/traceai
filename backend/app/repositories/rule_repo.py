@@ -14,5 +14,10 @@ class RuleRepository:
             .where(CustomRule.is_active == True)
         )
         result = await self.session.execute(stmt)
-        return list(result.scalars().all())
+        rules = list(result.scalars().all())
+        
+        # End the transaction to avoid holding a connection idle during AI analysis
+        await self.session.rollback()
+        
+        return rules
         

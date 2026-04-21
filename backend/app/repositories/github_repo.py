@@ -21,7 +21,6 @@ class GitHubRepository:
             )
             self.db.add(repo)
             await self.db.commit()
-            await self.db.refresh(repo)
 
         return repo
 
@@ -45,6 +44,5 @@ class GitHubRepository:
             pr.title = pr_payload.title
         
         await self.db.commit()
-        await self.db.refresh(pr)
 
         return pr

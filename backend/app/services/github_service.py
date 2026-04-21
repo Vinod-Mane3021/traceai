@@ -115,6 +115,15 @@ async def _sync_vulnerabilities_to_db(pr_id: int, vulnerabilities: list[dict], d
     if not vulnerabilities:
         return
 
+    # Ensure the connection is alive after the long AI analysis gap.
+    # A simple SELECT 1 triggers SQLAlchemy's pool_pre_ping and re-connects if necessary.
+    try:
+        from sqlalchemy import text
+        await db.execute(text("SELECT 1"))
+    except Exception:
+        # If this fails, the next step will likely fail too, but at least we tried to wake it up.
+        pass
+
     vuln_repo = VulnerabilityRepo(db)
     try:
         await vuln_repo.bulk_create_vulnerabilities(pr_id, vulnerabilities)
