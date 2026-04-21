@@ -7,6 +7,7 @@ from app.utils.diff_processor import parse_and_filter_diff
 from app.utils.github_client import AsyncGithubClient
 from app.services.ai_service import analyze_code_chunk
 from app.repositories.rule_repo import RuleRepository
+from app.repositories.vulnerability_repo import VulnerabilityRepo
 
 logger = structlog.get_logger(__name__)
 
@@ -107,6 +108,20 @@ async def _report_analysis_results(github_client: AsyncGithubClient, owner: str,
             state="success", description="Passed: No vulnerabilities detected, safe to merge."
         )
 
+async def _sync_vulnerabilities_to_db(pr_id: int, vulnerabilities: list[dict], db: AsyncSession, log: structlog.BoundLogger):
+    """
+    Saves the discovered vulnerabilities into the database, associated with the current PR.
+    """
+    if not vulnerabilities:
+        return
+
+    vuln_repo = VulnerabilityRepo(db)
+    try:
+        await vuln_repo.bulk_create_vulnerabilities(pr_id, vulnerabilities)
+        log.info("vulnerabilities_synced_to_db", message=f"Successfully saved {len(vulnerabilities)} vulnerabilities to database")
+    except Exception as e:
+        log.error("vulnerabilities_sync_failed", message="Failed to save vulnerabilities to database", error=str(e), error_type=type(e).__name__)
+
 async def process_pull_request_event(payload: PullRequestWebhookPayload, db: AsyncSession):
     """
     Core business logic for handling incoming PR webhook events.
@@ -145,6 +160,11 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
 
         # Analyze code for vulnerabilities and update GitHub statuses/reviews accordingly
         vulnerabilities = await _analyze_pr_diff(github_client, owner, repo_name, pr_number, custom_rules, log)
+        
+        # Sync vulnerabilities to our local database
+        await _sync_vulnerabilities_to_db(db_pr.id, vulnerabilities, db, log)
+        
+        # Report results back to GitHub
         await _report_analysis_results(github_client, owner, repo_name, pr_number, head_sha, vulnerabilities, log)
         
     except Exception as e:
