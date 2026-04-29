@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, insert, update, delete
 from app.models.core import CustomRule
 
 class RuleRepository:
@@ -24,3 +24,36 @@ class RuleRepository:
         
         return rules
         
+    async def add_custom_rule(self, repository_id: int, rule_text: str, is_active: bool = True) -> CustomRule:
+        """Adds a new custom security rule to the database."""
+        stmt = (
+            insert(CustomRule)
+            .values(repository_id=repository_id, rule_text=rule_text, is_active=is_active)
+            .returning(CustomRule)
+        )
+        result = await self.session.execute(stmt)
+        await self.session.commit()
+        return result.scalar_one()
+    
+
+    async def update_rule_status(self, rule_id: int, rule_text: str, is_active: bool) -> CustomRule:
+        """Updates the status of an existing custom security rule."""
+        stmt = (
+            update(CustomRule)
+            .where(CustomRule.id == rule_id)
+            .values(rule_text=rule_text, is_active=is_active)
+            .returning(CustomRule)
+        )
+        result = await self.session.execute(stmt)
+        await self.session.commit()
+        return result.scalar_one()
+    
+    async def delete_rule(self, rule_id: int) -> None:
+        """Deletes an existing custom security rule."""
+        stmt = (
+            delete(CustomRule)
+            .where(CustomRule.id == rule_id)
+        )
+        await self.session.execute(stmt)
+        await self.session.commit()
+        return None
