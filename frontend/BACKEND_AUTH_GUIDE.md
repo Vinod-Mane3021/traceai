@@ -3,7 +3,6 @@ export const env = {
   appDescription: import.meta.env.VITE_APP_DESCRIPTION ?? "",
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api",
   mockApi: String(import.meta.env.VITE_MOCK_API_CALLS).toLowerCase() === "true",
-  githubClientId: import.meta.env.VITE_GITHUB_CLIENT_ID ?? "",
 };
 ode` to your FastAPI backend.
 4.  **Token Exchange (Backend)**: Backend exchanges `code` for a GitHub `access_token`.

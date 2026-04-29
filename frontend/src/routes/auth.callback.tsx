@@ -20,9 +20,16 @@ function CallbackPage() {
     if (fired.current) return;
     fired.current = true;
     if (!code) return;
-    callback.mutate(code, {
-      onSuccess: () => navigate({ to: "/" }),
-    });
+
+    // Use the exact same origin as the redirect_uri sent to GitHub initially
+    const redirect_uri = `${window.location.origin}/auth/callback`;
+
+    callback.mutate(
+      { code, redirect_uri },
+      {
+        onSuccess: () => navigate({ to: "/" }),
+      },
+    );
   }, [code, callback, navigate]);
 
   return (

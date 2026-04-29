@@ -28,9 +28,12 @@ function LoginPage() {
   const handleSignIn = () => {
     if (env.mockApi || !env.githubClientId) {
       // Demo / mock path
-      callback.mutate("mock-code", {
-        onSuccess: () => navigate({ to: "/" }),
-      });
+      callback.mutate(
+        { code: "mock-code", redirect_uri: `${window.location.origin}/auth/callback` },
+        {
+          onSuccess: () => navigate({ to: "/" }),
+        },
+      );
       return;
     }
     const redirect = `${window.location.origin}/auth/callback`;

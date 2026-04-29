@@ -11,6 +11,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 class GitHubCode(BaseModel):
     code: str
+    redirect_uri: str | None = None
 
 class AuthUser(BaseModel):
     username: str
@@ -36,6 +37,8 @@ async def github_oauth_callback(payload: GitHubCode):
         "client_secret": settings.GITHUB_CLIENT_SECRET,
         "code": payload.code
     }
+    if payload.redirect_uri:
+        data["redirect_uri"] = payload.redirect_uri
 
     async with httpx.AsyncClient() as client:
         log.debug("exchanging_code_for_token", message="Exchanging code for GitHub access token", url=token_url)
