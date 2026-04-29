@@ -23,6 +23,21 @@ class RuleRepository:
         await self.session.commit()
         
         return rules
+
+    async def get_all_rules_for_repo(self, repository_id: int) -> list[CustomRule]:
+        """Fetches all custom security rules for a specific repository."""
+        stmt = (
+            select(CustomRule)
+            .where(CustomRule.repository_id == repository_id)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_rule_by_id(self, rule_id: int) -> CustomRule | None:
+        """Fetches a specific custom security rule by ID."""
+        stmt = select(CustomRule).where(CustomRule.id == rule_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
         
     async def add_custom_rule(self, repository_id: int, rule_text: str, is_active: bool = True) -> CustomRule:
         """Adds a new custom security rule to the database."""
