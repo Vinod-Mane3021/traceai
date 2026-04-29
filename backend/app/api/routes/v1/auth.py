@@ -40,16 +40,29 @@ async def github_oauth_callback(payload: GitHubCode):
     if payload.redirect_uri:
         data["redirect_uri"] = payload.redirect_uri
 
+    log.info("exchanging_code_for_token", 
+              message="Sending request to GitHub for token exchange", 
+              url=token_url,
+              client_id=settings.GITHUB_CLIENT_ID,
+              has_redirect_uri=bool(payload.redirect_uri))
+
     async with httpx.AsyncClient() as client:
-        log.debug("exchanging_code_for_token", message="Exchanging code for GitHub access token", url=token_url)
-        token_response = await client.post(token_url, headers=headers, data=data)
-        token_data = token_response.json()
+        try:
+            token_response = await client.post(token_url, headers=headers, data=data)
+            log.info("github_response_received", 
+                      status_code=token_response.status_code,
+                      content_preview=token_response.text[:100])
+            token_data = token_response.json()
+        except Exception as e:
+            log.error("github_request_failed", message=str(e))
+            raise HTTPException(status_code=500, detail=f"Internal error connecting to GitHub: {str(e)}")
 
         if "error" in token_data:
             log.error("github_token_exchange_failed", 
                       message="GitHub token exchange failed",
                       error=token_data.get("error"), 
-                      description=token_data.get("error_description"))
+                      description=token_data.get("error_description"),
+                      full_response=token_data)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
                 detail=token_data.get("error_description", "Failed to exchange code for token")
