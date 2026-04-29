@@ -1,0 +1,92 @@
+import type { AnalyticsOverview, Vulnerability } from "@/types/analytics";
+
+export const mockOverview: AnalyticsOverview = {
+  total_repositories: 12,
+  total_vulnerabilities: 45,
+  open_vulnerabilities: 10,
+  scanned_prs: 150,
+  critical_vulnerabilities: 2,
+};
+
+export const mockFeed: Vulnerability[] = [
+  {
+    id: 101,
+    title: "SQL Injection in Login Form",
+    severity: "CRITICAL",
+    status: "OPEN",
+    repository: "my-secure-app",
+    created_at: "2026-04-28T10:00:00Z",
+  },
+  {
+    id: 102,
+    title: "Hardcoded AWS access key in config",
+    severity: "CRITICAL",
+    status: "OPEN",
+    repository: "billing-service",
+    created_at: "2026-04-27T15:11:00Z",
+  },
+  {
+    id: 103,
+    title: "Outdated dependency: lodash <4.17.21",
+    severity: "HIGH",
+    status: "IN_PROGRESS",
+    repository: "marketing-site",
+    created_at: "2026-04-27T08:42:00Z",
+  },
+  {
+    id: 104,
+    title: "Missing CSRF token on /transfer",
+    severity: "HIGH",
+    status: "OPEN",
+    repository: "billing-service",
+    created_at: "2026-04-26T18:30:00Z",
+  },
+  {
+    id: 105,
+    title: "Weak JWT secret length",
+    severity: "MEDIUM",
+    status: "OPEN",
+    repository: "auth-gateway",
+    created_at: "2026-04-26T11:05:00Z",
+  },
+  {
+    id: 106,
+    title: "Verbose error responses leak stack",
+    severity: "MEDIUM",
+    status: "FIXED",
+    repository: "api-edge",
+    created_at: "2026-04-25T22:14:00Z",
+  },
+  {
+    id: 107,
+    title: "Open redirect on /go",
+    severity: "LOW",
+    status: "FIXED",
+    repository: "marketing-site",
+    created_at: "2026-04-24T09:00:00Z",
+  },
+  {
+    id: 108,
+    title: "Missing rate limit on /login",
+    severity: "HIGH",
+    status: "OPEN",
+    repository: "auth-gateway",
+    created_at: "2026-04-23T07:50:00Z",
+  },
+  {
+    id: 109,
+    title: "Insecure cookie flags",
+    severity: "LOW",
+    status: "IGNORED",
+    repository: "internal-tools",
+    created_at: "2026-04-22T16:00:00Z",
+  },
+  {
+    id: 110,
+    title: "Unrestricted file upload size",
+    severity: "MEDIUM",
+    status: "OPEN",
+    repository: "media-service",
+    created_at: "2026-04-21T12:00:00Z",
+  },
+];

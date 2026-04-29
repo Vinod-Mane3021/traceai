@@ -233,3 +233,117 @@ The base URL for all API endpoints is:
   }
 ]
 ```
+
+---
+
+## Custom Rule Endpoints
+*Note: These endpoints require an `Authorization: Bearer <token>` header.*
+
+### 9. List Rules by Repository
+**API Name:** List Rules by Repository  
+**Description:** Fetches all custom security rules for a specific repository.  
+**URL:** `/api/v1/rules/repository/{repository_id}`  
+**Method:** `GET`  
+**Request Type:** `None`  
+**Sample Request:**  
+`GET /api/v1/rules/repository/1`  
+`Authorization: Bearer <token>`
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "repository_id": 1,
+    "rule_text": "Never use MD5 hashing, enforce SHA-256.",
+    "is_active": true,
+    "created_at": "2024-05-20T10:00:00Z"
+  }
+]
+```
+
+### 10. Create Custom Rule
+**API Name:** Create Custom Rule  
+**Description:** Adds a new custom security rule to a repository.  
+**URL:** `/api/v1/rules/`  
+**Method:** `POST`  
+**Request Type:** `application/json`  
+**Sample Request:**
+```json
+{
+  "repository_id": 1,
+  "rule_text": "Enforce strict typing in all TypeScript files.",
+  "is_active": true
+}
+```
+
+**Response:**
+```json
+{
+  "id": 2,
+  "repository_id": 1,
+  "rule_text": "Enforce strict typing in all TypeScript files.",
+  "is_active": true,
+  "created_at": "2024-05-20T11:00:00Z"
+}
+```
+
+### 11. Get Custom Rule
+**API Name:** Get Custom Rule  
+**Description:** Fetches details of a specific custom security rule.  
+**URL:** `/api/v1/rules/{rule_id}`  
+**Method:** `GET`  
+**Request Type:** `None`  
+**Sample Request:**  
+`GET /api/v1/rules/1`  
+`Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "id": 1,
+  "repository_id": 1,
+  "rule_text": "Never use MD5 hashing, enforce SHA-256.",
+  "is_active": true,
+  "created_at": "2024-05-20T10:00:00Z"
+}
+```
+
+### 12. Update Custom Rule
+**API Name:** Update Custom Rule  
+**Description:** Updates the text or active status of an existing custom security rule.  
+**URL:** `/api/v1/rules/{rule_id}`  
+**Method:** `PATCH`  
+**Request Type:** `application/json`  
+**Sample Request:**
+```json
+{
+  "rule_text": "Use SHA-512 instead of MD5.",
+  "is_active": false
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "repository_id": 1,
+  "rule_text": "Use SHA-512 instead of MD5.",
+  "is_active": false,
+  "created_at": "2024-05-20T10:00:00Z"
+}
+```
+
+### 13. Delete Custom Rule
+**API Name:** Delete Custom Rule  
+**Description:** Permanently removes a custom security rule.  
+**URL:** `/api/v1/rules/{rule_id}`  
+**Method:** `DELETE`  
+**Request Type:** `None`  
+**Sample Request:**  
+`DELETE /api/v1/rules/1`  
+`Authorization: Bearer <token>`
+
+**Response:**
+`204 No Content`
+
