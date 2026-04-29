@@ -54,7 +54,7 @@ The base URL for all API endpoints is:
 **API Name:** GitHub OAuth Callback  
 **Description:** Exchanges a GitHub OAuth code for a local JWT and user profile information.  
 **URL:** `/api/v1/auth/github/callback`  
-**Method:** `GET`  
+**Method:** `POST`  
 **Request Type:** `application/json`  
 **Sample Request:**
 ```json

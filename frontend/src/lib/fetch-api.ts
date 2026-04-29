@@ -1,5 +1,5 @@
 import { env } from "./env";
-import { getAuthToken } from "@/features/auth/store/auth-store";
+import { getAuthToken, useAuthStore } from "@/features/auth/store/auth-store";
 
 export const fetchApi = async (
   input: string | URL | Request,
@@ -14,6 +14,7 @@ export const fetchApi = async (
  * - prepends VITE_API_BASE_URL when input is a relative path
  * - injects the bearer token from the auth store when present
  * - parses JSON or throws an Error with the response text on non-2xx
+ * - handles 401 Unauthorized by clearing the session
  */
 export async function apiRequest<T>(
   path: string,
@@ -29,9 +30,26 @@ export async function apiRequest<T>(
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
   const res = await fetchApi(url, { ...init, headers });
+
+  if (res.status === 401) {
+    useAuthStore.getState().clearSession();
+    // Optional: could force a reload or redirect here if needed
+    // window.location.href = '/login';
+  }
+
   if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(text || `Request failed with ${res.status}`);
+    let errorMessage = `Request failed with ${res.status}`;
+    try {
+      const errorData = await res.json();
+      if (errorData && typeof errorData.detail === "string") {
+        errorMessage = errorData.detail;
+      } else if (errorData && typeof errorData.detail === "object") {
+        errorMessage = JSON.stringify(errorData.detail);
+      }
+    } catch {
+      errorMessage = (await res.text().catch(() => "")) || errorMessage;
+    }
+    throw new Error(errorMessage);
   }
   const ct = res.headers.get("content-type") ?? "";
   if (ct.includes("application/json")) return (await res.json()) as T;
