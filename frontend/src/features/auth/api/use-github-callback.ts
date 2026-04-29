@@ -11,7 +11,7 @@ async function exchangeCode(code: string): Promise<AuthCallbackResponse> {
     return mockAuthCallback;
   }
   return apiRequest<AuthCallbackResponse>("/v1/auth/github/callback", {
-    method: "GET",
+    method: "POST",
     body: JSON.stringify({ code }),
   });
 }
