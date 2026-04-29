@@ -7,6 +7,11 @@ const sevStyles: Record<Severity, string> = {
   MEDIUM: "bg-[color:var(--sev-medium)]/15 text-[color:var(--sev-medium)] border-[color:var(--sev-medium)]/30",
   LOW: "bg-[color:var(--sev-low)]/15 text-[color:var(--sev-low)] border-[color:var(--sev-low)]/30",
   INFO: "bg-[color:var(--sev-info)]/15 text-[color:var(--sev-info)] border-[color:var(--sev-info)]/30",
+  critical: "bg-[color:var(--sev-critical)]/15 text-[color:var(--sev-critical)] border-[color:var(--sev-critical)]/30",
+  high: "bg-[color:var(--sev-high)]/15 text-[color:var(--sev-high)] border-[color:var(--sev-high)]/30",
+  medium: "bg-[color:var(--sev-medium)]/15 text-[color:var(--sev-medium)] border-[color:var(--sev-medium)]/30",
+  low: "bg-[color:var(--sev-low)]/15 text-[color:var(--sev-low)] border-[color:var(--sev-low)]/30",
+  info: "bg-[color:var(--sev-info)]/15 text-[color:var(--sev-info)] border-[color:var(--sev-info)]/30",
 };
 
 export function SeverityBadge({ severity }: { severity: Severity }) {
@@ -28,6 +33,10 @@ const statusStyles: Record<VulnStatus, string> = {
   IN_PROGRESS: "bg-warning/10 text-warning border-warning/30",
   FIXED: "bg-success/10 text-success border-success/30",
   IGNORED: "bg-muted text-muted-foreground border-border",
+  open: "bg-destructive/10 text-destructive border-destructive/30",
+  in_progress: "bg-warning/10 text-warning border-warning/30",
+  fixed: "bg-success/10 text-success border-success/30",
+  ignored: "bg-muted text-muted-foreground border-border",
 };
 
 export function StatusBadge({ status }: { status: VulnStatus }) {

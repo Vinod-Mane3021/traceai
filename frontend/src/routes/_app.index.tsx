@@ -20,6 +20,10 @@ export const Route = createFileRoute("/_app/")({
 function OverviewPage() {
   const { data, isLoading } = useAnalyticsOverview();
 
+  const criticalCount = data?.severity_distribution.find(
+    (d) => d.severity.toUpperCase() === "CRITICAL"
+  )?.count ?? 0;
+
   return (
     <>
       <Topbar title="Overview" subtitle="Security signals across all connected repositories" />
@@ -29,11 +33,11 @@ function OverviewPage() {
             Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
           ) : (
             <>
-              <StatCard index={0} label="Repositories" value={data.total_repositories} icon={GitBranch} hint="Connected" />
-              <StatCard index={1} label="Vulnerabilities" value={data.total_vulnerabilities} icon={ShieldAlert} hint="All-time" />
-              <StatCard index={2} label="Open" value={data.open_vulnerabilities} icon={ListChecks} tone="warning" hint="Need attention" />
-              <StatCard index={3} label="Critical" value={data.critical_vulnerabilities} icon={AlertOctagon} tone="critical" hint="Highest priority" />
-              <StatCard index={4} label="Scanned PRs" value={data.scanned_prs} icon={FileSearch} tone="success" hint="Past 30 days" />
+              <StatCard index={0} label="Repositories" value={data.summary.total_repos_monitored} icon={GitBranch} hint="Connected" />
+              <StatCard index={1} label="Vulnerabilities" value={data.summary.total_vulnerabilities} icon={ShieldAlert} hint="All-time" />
+              <StatCard index={2} label="Open" value={data.summary.open_vulnerabilities} icon={ListChecks} tone="warning" hint="Need attention" />
+              <StatCard index={3} label="Critical" value={criticalCount} icon={AlertOctagon} tone="critical" hint="Highest priority" />
+              <StatCard index={4} label="Scanned PRs" value={data.summary.total_prs_scanned} icon={FileSearch} tone="success" hint="Past 30 days" />
             </>
           )}
         </section>
