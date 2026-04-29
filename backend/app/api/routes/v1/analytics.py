@@ -43,18 +43,25 @@ async def get_vulnerability_feed(
 
 @router.get("/report/soc2/pdf")
 async def download_soc2_pdf(
-    repository_id: int,
+    repository_id: int | None = None,
+    github_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     """
     Generates and returns a PDF file containing the SOC2 audit log.
+    Accepts either repository_id (database ID) or github_id.
     """
-    log = logger.bind(user_id=current_user.get("id"), repository_id=repository_id, endpoint="download_soc2_pdf")
-    log.info("soc2_report_download_request_received", message=f"Client requested SOC2 report download for repo_id={repository_id}")
+    log = logger.bind(
+        user_id=current_user.get("id"), 
+        repository_id=repository_id, 
+        github_id=github_id,
+        endpoint="download_soc2_pdf"
+    )
+    log.info("soc2_report_download_request_received", message="Client requested SOC2 report download")
     
     service = AnalyticsService(db)
-    pdf_buffer, repo_name = await service.generate_soc2_report(repository_id)
+    pdf_buffer, repo_name = await service.generate_soc2_report(repository_id=repository_id, github_id=github_id)
     
     if not pdf_buffer:
         log.warning("soc2_report_download_failed", message="Failed to serve SOC2 report: Repository not found", reason="repository_not_found")

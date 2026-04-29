@@ -135,10 +135,13 @@ The base URL for all API endpoints is:
 **Method:** `GET`  
 **Request Type:** `None`  
 **Parameters:**
-- `repository_id` (Query, Required): The ID of the repository to generate the report for.
+- `repository_id` (Query, Optional): The local database ID of the repository.
+- `github_id` (Query, Optional): The GitHub ID of the repository.
+
+*Note: One of either `repository_id` or `github_id` must be provided.*
 
 **Sample Request:**  
-`GET /api/v1/analytics/report/soc2/pdf?repository_id=1`  
+`GET /api/v1/analytics/report/soc2/pdf?github_id=1296269`  
 `Authorization: Bearer <token>`
 
 **Response:**

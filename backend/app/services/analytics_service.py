@@ -1,4 +1,5 @@
 import structlog
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.analytics_repo import AnalyticsRepository
 from app.models.core import Repository
@@ -44,11 +45,20 @@ class AnalyticsService:
         log.info("recent_vulnerabilities_feed_retrieved", message="Successfully fetched vulnerability feed", count=len(recent_vulnerabilities))
         return {"recent_vulnerabilities": recent_vulnerabilities}
 
-    async def generate_soc2_report(self, repository_id: int):
-        log = logger.bind(method="generate_soc2_report", repository_id=repository_id)
+    async def generate_soc2_report(self, repository_id: int | None = None, github_id: int | None = None):
+        log = logger.bind(method="generate_soc2_report", repository_id=repository_id, github_id=github_id)
         
         # 1. Verify Repo exists
-        repo = await self.db.get(Repository, repository_id)
+        if repository_id:
+            repo = await self.db.get(Repository, repository_id)
+        elif github_id:
+            stmt = select(Repository).where(Repository.github_id == github_id)
+            result = await self.db.execute(stmt)
+            repo = result.scalar_one_or_none()
+        else:
+            log.warning("missing_repository_identifier", message="Failed to generate SOC2 report: Neither repository_id nor github_id provided")
+            return None, None
+
         if not repo:
             log.warning("repo_not_found_for_report_generation", message="Failed to generate SOC2 report: Repository not found")
             return None, None
@@ -56,7 +66,7 @@ class AnalyticsService:
         log.info("starting_soc2_pdf_generation", message=f"Starting SOC2 PDF generation for {repo.full_name}")
         
         # 2. Fetch Vulnerability Data
-        vulnerabilities = await self.repo.get_vulnerability_data(repository_id)
+        vulnerabilities = await self.repo.get_vulnerability_data(repo.id)
 
         # 3. Generate PDF
         pdf_buffer = generate_soc2_audit_report(
