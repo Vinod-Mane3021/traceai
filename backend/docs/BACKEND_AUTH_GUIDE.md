@@ -66,14 +66,25 @@ class GitHubCode(BaseModel):
 ```python
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from .schemas import GitHubCode, AuthCallbackResponse, AuthUser
 
 app = FastAPI()
 
+# Add CORS Middleware to allow requests from your frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # Vite's default port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 GITHUB_CLIENT_ID = "your_client_id"
 GITHUB_CLIENT_SECRET = "your_client_secret"
 
-@app.post("/v1/auth/github/callback", response_model=AuthCallbackResponse)
+# Matches your current logs showing /api/v1/...
+@app.post("/api/v1/auth/github/callback", response_model=AuthCallbackResponse)
 async def github_callback(payload: GitHubCode):
     # 1. Exchange code for access token
     async with httpx.AsyncClient() as client:
@@ -101,9 +112,8 @@ async def github_callback(payload: GitHubCode):
         user_data = user_res.json()
         
     # 3. Create your own JWT or session token here
-    # For now, we return a mock/bridged token and user info
     return {
-        "access_token": f"session_{gh_access_token[:10]}", # Replace with real JWT
+        "access_token": f"session_{gh_access_token[:10]}",
         "user": {
             "username": user_data["login"],
             "avatar_url": user_data["avatar_url"]

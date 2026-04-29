@@ -57,7 +57,7 @@ async def github_oauth_callback(payload: GitHubCode):
 
         # 2. Fetch the user's GitHub Profile
         user_url = "https://api.github.com/user"
-        user_headers = {"Authorization": f"Bearer {gh_access_token}"}
+        user_headers = {"Authorization": f"token {gh_access_token}"}
         
         log.debug("fetching_github_profile", message="Fetching user profile from GitHub", url=user_url)
         user_response = await client.get(user_url, headers=user_headers)
