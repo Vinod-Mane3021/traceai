@@ -195,3 +195,41 @@ The base URL for all API endpoints is:
   "message": "PR event received"
 }
 ```
+
+---
+
+## GitHub Endpoints
+*Note: These endpoints require an `Authorization: Bearer <token>` header.*
+
+### 8. List Repositories
+**API Name:** List Repositories  
+**Description:** Fetches all repositories accessible to the specified GitHub App installation.  
+**URL:** `/api/v1/github/repositories`  
+**Method:** `GET`  
+**Request Type:** `None`  
+**Parameters:**
+- `installation_id` (Query, Required): The GitHub App installation ID.
+
+**Sample Request:**  
+`GET /api/v1/github/repositories?installation_id=123`  
+`Authorization: Bearer <token>`
+
+**Response:**
+```json
+[
+  {
+    "id": 1296269,
+    "name": "hello-world",
+    "full_name": "octocat/hello-world",
+    "private": false,
+    "owner": {
+      "login": "octocat",
+      "id": 1,
+      "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+    },
+    "html_url": "https://github.com/octocat/hello-world",
+    "description": "This your first repo!",
+    ...
+  }
+]
+```

@@ -146,3 +146,31 @@ class AsyncGithubClient:
             
             response.raise_for_status()
             log.info("set_commit_status_success", message=f"Successfully set commit status to '{state}'")
+
+    async def list_repositories(self) -> list[dict]:
+        """
+        Lists all repositories accessible to this installation.
+        """
+        token = await self._get_installation_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+
+        self.log.info("listing_repositories", message="Fetching all repositories for installation")
+        async with httpx.AsyncClient() as client:
+            endpoint = f"{self.base_url}/installation/repositories"
+            response = await client.get(endpoint, headers=headers)
+
+            if response.status_code != 200:
+                self.log.error("list_repositories_failed",
+                               message="Failed to fetch repositories",
+                               status_code=response.status_code,
+                               response=response.text)
+            
+            response.raise_for_status()
+            
+            repos = response.json().get("repositories", [])
+            self.log.info("list_repositories_success", 
+                          message=f"Successfully fetched {len(repos)} repositories")
+            return repos

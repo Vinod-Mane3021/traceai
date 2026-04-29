@@ -131,6 +131,14 @@ async def _sync_vulnerabilities_to_db(pr_id: int, vulnerabilities: list[dict], d
     except Exception as e:
         log.error("vulnerabilities_sync_failed", message="Failed to save vulnerabilities to database", error=str(e), error_type=type(e).__name__)
 
+async def list_user_repositories(installation_id: int) -> list[dict]:
+    """
+    Fetches all repositories for a given installation.
+    """
+    github_client = AsyncGithubClient(installation_id=installation_id)
+    return await github_client.list_repositories()
+
+
 async def process_pull_request_event(payload: PullRequestWebhookPayload, db: AsyncSession):
     """
     Core business logic for handling incoming PR webhook events.
