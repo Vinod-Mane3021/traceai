@@ -2,35 +2,55 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { useGithubCallback } from "@/features/auth/api/use-github-callback";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 export const Route = createFileRoute("/auth/callback")({
   validateSearch: (search: Record<string, unknown>) => ({
     code: typeof search.code === "string" ? search.code : "",
+    installation_id: typeof search.installation_id === "string" ? search.installation_id : undefined,
   }),
   component: CallbackPage,
 });
 
 function CallbackPage() {
-  const { code } = Route.useSearch();
+  const { code, installation_id } = Route.useSearch();
   const navigate = useNavigate();
   const callback = useGithubCallback();
+  const { user, setSession, token } = useAuthStore();
   const fired = useRef(false);
 
   useEffect(() => {
     if (fired.current) return;
     fired.current = true;
-    if (!code) return;
 
-    // Use the exact same origin as the redirect_uri sent to GitHub initially
-    const redirect_uri = `${window.location.origin}/auth/callback`;
+    // Case 1: Standard OAuth flow (code present)
+    if (code) {
+      const redirect_uri = `${window.location.origin}/auth/callback`;
+      callback.mutate(
+        { code, redirect_uri },
+        {
+          onSuccess: () => navigate({ to: "/" }),
+        },
+      );
+      return;
+    }
 
-    callback.mutate(
-      { code, redirect_uri },
-      {
-        onSuccess: () => navigate({ to: "/" }),
-      },
-    );
-  }, [code, callback, navigate]);
+    // Case 2: Post-installation redirect (no code, but installation_id present)
+    if (installation_id && token && user) {
+      // Update the existing session with the new installation_id
+      setSession(token, {
+        ...user,
+        installation_id: parseInt(installation_id, 10),
+      });
+      navigate({ to: "/repositories" });
+      return;
+    }
+
+    // Case 3: No recognizable params, or unauthenticated install
+    if (!code && !installation_id) {
+       navigate({ to: "/login" });
+    }
+  }, [code, installation_id, callback, navigate, user, setSession, token]);
 
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4">

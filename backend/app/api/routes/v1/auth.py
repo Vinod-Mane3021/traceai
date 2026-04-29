@@ -16,6 +16,7 @@ class GitHubCode(BaseModel):
 class AuthUser(BaseModel):
     username: str
     avatar_url: str
+    installation_id: int | None = None
 
 class AuthCallbackResponse(BaseModel):
     access_token: str
@@ -73,7 +74,7 @@ async def github_oauth_callback(payload: GitHubCode):
 
         # 2. Fetch the user's GitHub Profile
         user_url = "https://api.github.com/user"
-        user_headers = {"Authorization": f"token {gh_access_token}"}
+        user_headers = {"Authorization": f"Bearer {gh_access_token}"}
         
         log.debug("fetching_github_profile", message="Fetching user profile from GitHub", url=user_url)
         user_response = await client.get(user_url, headers=user_headers)
@@ -92,7 +93,28 @@ async def github_oauth_callback(payload: GitHubCode):
                  message="GitHub user profile successfully retrieved",
                  username=user_data.get("login"))
 
-    # 3. Create a local JWT for the React frontend
+        # 3. Fetch User's Installations for this App
+        # This helps the frontend know which installation to use immediately
+        inst_url = "https://api.github.com/user/installations"
+        log.debug("fetching_user_installations", message="Fetching app installations for user", url=inst_url)
+        inst_response = await client.get(inst_url, headers=user_headers)
+        
+        installation_id = None
+        if inst_response.status_code == 200:
+            inst_data = inst_response.json()
+            installations = inst_data.get("installations", [])
+            if installations:
+                # For simplicity in this demo, we take the first active installation
+                installation_id = installations[0].get("id")
+                log.info("user_installation_found", 
+                         installation_id=installation_id, 
+                         count=len(installations))
+        else:
+            log.warning("user_installations_fetch_failed", 
+                        status_code=inst_response.status_code,
+                        response=inst_response.text)
+
+    # 4. Create a local JWT for the React frontend
     local_token = create_access_token(data={"sub": user_data["login"]})
     log.info("local_jwt_generated", 
              message="Local session JWT generated for user",
@@ -102,6 +124,7 @@ async def github_oauth_callback(payload: GitHubCode):
         "access_token": local_token,
         "user": {
             "username": user_data["login"],
-            "avatar_url": user_data["avatar_url"]
+            "avatar_url": user_data["avatar_url"],
+            "installation_id": installation_id
         }
     }

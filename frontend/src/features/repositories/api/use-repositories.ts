@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/fetch-api";
 import { env } from "@/lib/env";
 import { mockRepositories } from "../lib/mock-repositories";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import type { Repository } from "@/types/repository";
 
 async function fetchRepositories(installationId: string): Promise<Repository[]> {
@@ -19,9 +20,14 @@ async function fetchRepositories(installationId: string): Promise<Repository[]> 
   );
 }
 
-export function useRepositories(installationId = "demo") {
+export function useRepositories(installationId?: string) {
+  const user = useAuthStore((s) => s.user);
+  
+  // Use passed ID, or the one from the user session, or default to "demo"
+  const activeId = installationId ?? user?.installation_id?.toString() ?? "demo";
+
   return useQuery({
-    queryKey: ["github", "repositories", installationId],
-    queryFn: () => fetchRepositories(installationId),
+    queryKey: ["github", "repositories", activeId],
+    queryFn: () => fetchRepositories(activeId),
   });
 }
