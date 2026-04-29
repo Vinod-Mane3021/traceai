@@ -9,6 +9,11 @@ async function fetchRepositories(installationId: string): Promise<Repository[]> 
     await new Promise((r) => setTimeout(r, 400));
     return mockRepositories;
   }
+  
+  if (!installationId || installationId === "demo") {
+    return [];
+  }
+
   return apiRequest<Repository[]>(
     `/v1/github/repositories?installation_id=${encodeURIComponent(installationId)}`,
   );

@@ -3,5 +3,6 @@ export const env = {
   appDescription: import.meta.env.VITE_APP_DESCRIPTION ?? "",
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000",
   githubClientId: import.meta.env.VITE_GITHUB_CLIENT_ID ?? "",
+  githubPublicLink: import.meta.env.VITE_GITHUB_PUBLIC_LINK ?? "#",
   mockApi: String(import.meta.env.VITE_MOCK_API_CALLS).toLowerCase() === "true",
 };

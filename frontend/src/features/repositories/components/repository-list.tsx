@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/skeleton-block";
 import { Lock, Globe2, Download, ExternalLink, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { env } from "@/lib/env";
 
 export function RepositoryList() {
   const { data, isLoading, isError } = useRepositories();
@@ -19,6 +20,25 @@ export function RepositoryList() {
     );
   }
   if (isError) return <p className="text-sm text-destructive">Failed to load repositories.</p>;
+
+  if (data?.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 p-12 text-center">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
+          <Globe2 className="h-6 w-6" />
+        </div>
+        <h3 className="mt-4 text-base font-semibold">No repositories connected</h3>
+        <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+          Install our GitHub App to start scanning your repositories for vulnerabilities.
+        </p>
+        <Button className="mt-6" asChild>
+          <a href={env.githubPublicLink} target="_blank" rel="noreferrer">
+            Install GitHub App
+          </a>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-3">
