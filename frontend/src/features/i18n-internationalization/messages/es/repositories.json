@@ -1,9 +1,0 @@
-{
-  "list": {
-    "no_repos_title": "No hay repositorios conectados",
-    "no_repos_description": "Instala nuestra GitHub App para empezar a escanear tus repositorios en busca de vulnerabilidades.",
-    "private": "privado",
-    "public": "público",
-    "soc2_pdf": "SOC2 PDF"
-  }
-}

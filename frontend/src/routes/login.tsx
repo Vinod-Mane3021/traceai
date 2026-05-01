@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useGithubCallback } from "@/features/auth/api/use-github-callback";
 import { env } from "@/lib/env";
-import { Trans } from "@/features/i18n-internationalization/components/trans";
 
-export const Route = createFileRoute("/$locale/login")({
+export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: `Sign in — ${env.appName}` },
@@ -19,27 +18,26 @@ export const Route = createFileRoute("/$locale/login")({
 });
 
 function LoginPage() {
-  const { locale } = Route.useParams();
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const callback = useGithubCallback();
 
   useEffect(() => {
-    if (token) navigate({ to: "/$locale/", params: { locale } });
-  }, [token, navigate, locale]);
+    if (token) navigate({ to: "/" });
+  }, [token, navigate]);
 
   const handleSignIn = () => {
     if (env.mockApi || !env.githubClientId) {
       // Demo / mock path
       callback.mutate(
-        { code: "mock-code", redirect_uri: `${window.location.origin}/${locale}/auth/callback` },
+        { code: "mock-code", redirect_uri: `${window.location.origin}/auth/callback` },
         {
-          onSuccess: () => navigate({ to: "/$locale/", params: { locale } }),
+          onSuccess: () => navigate({ to: "/" }),
         },
       );
       return;
     }
-    const redirect = `${window.location.origin}/${locale}/auth/callback`;
+    const redirect = `${window.location.origin}/auth/callback`;
     const url = `https://github.com/login/oauth/authorize?client_id=${env.githubClientId}&redirect_uri=${encodeURIComponent(redirect)}&scope=read:user`;
     window.location.href = url;
   };
@@ -58,40 +56,37 @@ function LoginPage() {
       <div className="relative mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 lg:grid-cols-2">
         {/* Brand panel */}
         <div className="hidden lg:flex flex-col justify-between p-10">
-          <Link to="/$locale/" params={{ locale }} className="flex items-center gap-2 w-fit">
+          <Link to="/" className="flex items-center gap-2 w-fit">
             <div className="grid h-9 w-9 place-items-center rounded-md bg-primary/15 text-primary ring-1 ring-primary/30">
               <span className="font-mono text-sm font-bold">T</span>
             </div>
             <div className="leading-tight">
               <div className="text-sm font-semibold">{env.appName}</div>
               <div className="text-[11px] text-muted-foreground">
-                <Trans i18nKey="common:nav.security_console" />
+                security console
               </div>
             </div>
           </Link>
 
           <div className="space-y-6 max-w-md">
             <h2 className="text-3xl font-semibold tracking-tight">
-              <Trans
-                i18nKey="auth:login.hero_title"
-                components={{ highlight: <span className="text-primary" /> }}
-              />
+              Catch vulnerabilities <span className="text-primary">before</span> they ship.
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              <Trans i18nKey="auth:login.hero_description" />
+              Trace.ai connects to your GitHub installations and runs AI-powered security analysis on every pull request — surfacing critical issues with the context your team actually needs.
             </p>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
                 <ShieldCheck className="h-4 w-4 mt-0.5 text-primary" />
-                <Trans i18nKey="auth:login.feature_scanning" />
+                Continuous security scanning
               </li>
               <li className="flex items-start gap-3">
                 <Sparkles className="h-4 w-4 mt-0.5 text-primary" />
-                <Trans i18nKey="auth:login.feature_explaining" />
+                AI-powered vulnerability insights
               </li>
               <li className="flex items-start gap-3">
                 <Zap className="h-4 w-4 mt-0.5 text-primary" />
-                <Trans i18nKey="auth:login.feature_soc2" />
+                Automated SOC2 compliance reports
               </li>
             </ul>
           </div>
@@ -111,20 +106,16 @@ function LoginPage() {
               <span className="text-sm font-semibold">{env.appName}</span>
             </div>
             <h1 className="text-xl font-semibold tracking-tight">
-              <Trans i18nKey="auth:login.welcome_back" />
+              Welcome back
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              <Trans i18nKey="auth:login.github_signin_description" />
+              Connect your GitHub account to get started.
             </p>
 
             <Button className="mt-6 w-full h-10" onClick={handleSignIn} disabled={callback.isPending}>
               <Github className="h-4 w-4" />
               <span className="ml-2">
-                {callback.isPending ? (
-                  <Trans i18nKey="auth:login.signing_in" />
-                ) : (
-                  <Trans i18nKey="auth:login.continue_with_github" />
-                )}
+                {callback.isPending ? "Signing in..." : "Continue with GitHub"}
               </span>
             </Button>
 
@@ -133,12 +124,12 @@ function LoginPage() {
             )}
 
             <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
-              <Trans i18nKey="auth:login.legal_agreement" values={{ scope: "read:user" }} />
+              By signing in, you agree to allow Trace.ai to access your GitHub account (read:user).
             </p>
 
             {env.mockApi && (
               <div className="mt-5 rounded-md border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-                <Trans i18nKey="auth:login.mock_mode_notice" />
+                Note: Running in mock mode. Any GitHub account will work.
               </div>
             )}
           </div>

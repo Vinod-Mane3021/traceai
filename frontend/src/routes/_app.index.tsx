@@ -6,9 +6,8 @@ import { useAnalyticsOverview } from "@/features/analytics/api/use-analytics-ove
 import { VulnerabilityFeed } from "@/features/analytics/components/vulnerability-feed";
 import { Skeleton } from "@/components/skeleton-block";
 import { env } from "@/lib/env";
-import { Trans } from "@/features/i18n-internationalization/components/trans";
 
-export const Route = createFileRoute("/$locale/_app/")({
+export const Route = createFileRoute("/_app/")({
   head: () => ({
     meta: [
       { title: `Overview — ${env.appName}` },
@@ -27,8 +26,8 @@ function OverviewPage() {
   return (
     <>
       <Topbar
-        title={<Trans i18nKey="analytics:overview.title" />}
-        subtitle={<Trans i18nKey="analytics:overview.subtitle" />}
+        title="Overview"
+        subtitle="Security health across your organization"
       />
       <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-6 lg:px-8 lg:py-8">
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
@@ -38,41 +37,41 @@ function OverviewPage() {
             <>
               <StatCard
                 index={0}
-                label={<Trans i18nKey="analytics:overview.repos_label" />}
+                label="Monitored Repos"
                 value={data.summary.total_repos_monitored}
                 icon={GitBranch}
-                hint={<Trans i18nKey="analytics:overview.repos_hint" />}
+                hint="Total connected repositories"
               />
               <StatCard
                 index={1}
-                label={<Trans i18nKey="analytics:overview.vuln_label" />}
+                label="Vulnerabilities"
                 value={data.summary.total_vulnerabilities}
                 icon={ShieldAlert}
-                hint={<Trans i18nKey="analytics:overview.vuln_hint" />}
+                hint="Total detected across all time"
               />
               <StatCard
                 index={2}
-                label={<Trans i18nKey="analytics:overview.open_label" />}
+                label="Open Issues"
                 value={data.summary.open_vulnerabilities}
                 icon={ListChecks}
                 tone="warning"
-                hint={<Trans i18nKey="analytics:overview.open_hint" />}
+                hint="Currently active findings"
               />
               <StatCard
                 index={3}
-                label={<Trans i18nKey="analytics:overview.critical_label" />}
+                label="Critical"
                 value={criticalCount}
                 icon={AlertOctagon}
                 tone="critical"
-                hint={<Trans i18nKey="analytics:overview.critical_hint" />}
+                hint="High priority fixes needed"
               />
               <StatCard
                 index={4}
-                label={<Trans i18nKey="analytics:overview.scanned_prs_label" />}
+                label="Scanned PRs"
                 value={data.summary.total_prs_scanned}
                 icon={FileSearch}
                 tone="success"
-                hint={<Trans i18nKey="analytics:overview.scanned_prs_hint" />}
+                hint="Pull requests analyzed"
               />
             </>
           )}

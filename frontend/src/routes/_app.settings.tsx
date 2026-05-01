@@ -4,7 +4,7 @@ import { useApiInfo } from "@/api/use-api-info";
 import { useHealth } from "@/api/use-health";
 import { env } from "@/lib/env";
 
-export const Route = createFileRoute("/$locale/_app/settings")({
+export const Route = createFileRoute("/_app/settings")({
   head: () => ({ meta: [{ title: `Settings — ${env.appName}` }] }),
   component: SettingsPage,
 });

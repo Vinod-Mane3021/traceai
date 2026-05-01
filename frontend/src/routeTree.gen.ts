@@ -9,256 +9,204 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LocaleRouteImport } from './routes/$locale'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LocaleLoginRouteImport } from './routes/$locale.login'
-import { Route as LocaleAppRouteImport } from './routes/$locale._app'
-import { Route as LocaleAppIndexRouteImport } from './routes/$locale._app.index'
-import { Route as LocaleAuthCallbackRouteImport } from './routes/$locale.auth.callback'
-import { Route as LocaleAppVulnerabilitiesRouteImport } from './routes/$locale._app.vulnerabilities'
-import { Route as LocaleAppSettingsRouteImport } from './routes/$locale._app.settings'
-import { Route as LocaleAppRulesRouteImport } from './routes/$locale._app.rules'
-import { Route as LocaleAppRepositoriesRouteImport } from './routes/$locale._app.repositories'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AppVulnerabilitiesRouteImport } from './routes/_app.vulnerabilities'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRulesRouteImport } from './routes/_app.rules'
+import { Route as AppRepositoriesRouteImport } from './routes/_app.repositories'
 
-const LocaleRoute = LocaleRouteImport.update({
-  id: '/$locale',
-  path: '/$locale',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocaleLoginRoute = LocaleLoginRouteImport.update({
+const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => LocaleRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LocaleAppRoute = LocaleAppRouteImport.update({
+const AppRoute = AppRouteImport.update({
   id: '/_app',
-  getParentRoute: () => LocaleRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LocaleAppIndexRoute = LocaleAppIndexRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => LocaleAppRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const LocaleAuthCallbackRoute = LocaleAuthCallbackRouteImport.update({
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
-  getParentRoute: () => LocaleRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LocaleAppVulnerabilitiesRoute =
-  LocaleAppVulnerabilitiesRouteImport.update({
-    id: '/vulnerabilities',
-    path: '/vulnerabilities',
-    getParentRoute: () => LocaleAppRoute,
-  } as any)
-const LocaleAppSettingsRoute = LocaleAppSettingsRouteImport.update({
+const AppVulnerabilitiesRoute = AppVulnerabilitiesRouteImport.update({
+  id: '/vulnerabilities',
+  path: '/vulnerabilities',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => LocaleAppRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const LocaleAppRulesRoute = LocaleAppRulesRouteImport.update({
+const AppRulesRoute = AppRulesRouteImport.update({
   id: '/rules',
   path: '/rules',
-  getParentRoute: () => LocaleAppRoute,
+  getParentRoute: () => AppRoute,
 } as any)
-const LocaleAppRepositoriesRoute = LocaleAppRepositoriesRouteImport.update({
+const AppRepositoriesRoute = AppRepositoriesRouteImport.update({
   id: '/repositories',
   path: '/repositories',
-  getParentRoute: () => LocaleAppRoute,
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/$locale': typeof LocaleAppRouteWithChildren
-  '/$locale/login': typeof LocaleLoginRoute
-  '/$locale/repositories': typeof LocaleAppRepositoriesRoute
-  '/$locale/rules': typeof LocaleAppRulesRoute
-  '/$locale/settings': typeof LocaleAppSettingsRoute
-  '/$locale/vulnerabilities': typeof LocaleAppVulnerabilitiesRoute
-  '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
-  '/$locale/': typeof LocaleAppIndexRoute
+  '/': typeof AppIndexRoute
+  '/login': typeof LoginRoute
+  '/repositories': typeof AppRepositoriesRoute
+  '/rules': typeof AppRulesRoute
+  '/settings': typeof AppSettingsRoute
+  '/vulnerabilities': typeof AppVulnerabilitiesRoute
+  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/$locale': typeof LocaleAppIndexRoute
-  '/$locale/login': typeof LocaleLoginRoute
-  '/$locale/repositories': typeof LocaleAppRepositoriesRoute
-  '/$locale/rules': typeof LocaleAppRulesRoute
-  '/$locale/settings': typeof LocaleAppSettingsRoute
-  '/$locale/vulnerabilities': typeof LocaleAppVulnerabilitiesRoute
-  '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
+  '/login': typeof LoginRoute
+  '/repositories': typeof AppRepositoriesRoute
+  '/rules': typeof AppRulesRoute
+  '/settings': typeof AppSettingsRoute
+  '/vulnerabilities': typeof AppVulnerabilitiesRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/$locale': typeof LocaleRouteWithChildren
-  '/$locale/_app': typeof LocaleAppRouteWithChildren
-  '/$locale/login': typeof LocaleLoginRoute
-  '/$locale/_app/repositories': typeof LocaleAppRepositoriesRoute
-  '/$locale/_app/rules': typeof LocaleAppRulesRoute
-  '/$locale/_app/settings': typeof LocaleAppSettingsRoute
-  '/$locale/_app/vulnerabilities': typeof LocaleAppVulnerabilitiesRoute
-  '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
-  '/$locale/_app/': typeof LocaleAppIndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_app/repositories': typeof AppRepositoriesRoute
+  '/_app/rules': typeof AppRulesRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/vulnerabilities': typeof AppVulnerabilitiesRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/$locale'
-    | '/$locale/login'
-    | '/$locale/repositories'
-    | '/$locale/rules'
-    | '/$locale/settings'
-    | '/$locale/vulnerabilities'
-    | '/$locale/auth/callback'
-    | '/$locale/'
+    | '/login'
+    | '/repositories'
+    | '/rules'
+    | '/settings'
+    | '/vulnerabilities'
+    | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/login'
+    | '/repositories'
+    | '/rules'
+    | '/settings'
+    | '/vulnerabilities'
+    | '/auth/callback'
     | '/'
-    | '/$locale'
-    | '/$locale/login'
-    | '/$locale/repositories'
-    | '/$locale/rules'
-    | '/$locale/settings'
-    | '/$locale/vulnerabilities'
-    | '/$locale/auth/callback'
   id:
     | '__root__'
-    | '/'
-    | '/$locale'
-    | '/$locale/_app'
-    | '/$locale/login'
-    | '/$locale/_app/repositories'
-    | '/$locale/_app/rules'
-    | '/$locale/_app/settings'
-    | '/$locale/_app/vulnerabilities'
-    | '/$locale/auth/callback'
-    | '/$locale/_app/'
+    | '/_app'
+    | '/login'
+    | '/_app/repositories'
+    | '/_app/rules'
+    | '/_app/settings'
+    | '/_app/vulnerabilities'
+    | '/auth/callback'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  LocaleRoute: typeof LocaleRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/$locale': {
-      id: '/$locale'
-      path: '/$locale'
-      fullPath: '/$locale'
-      preLoaderRoute: typeof LocaleRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$locale/login': {
-      id: '/$locale/login'
-      path: '/login'
-      fullPath: '/$locale/login'
-      preLoaderRoute: typeof LocaleLoginRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/_app': {
-      id: '/$locale/_app'
-      path: ''
-      fullPath: '/$locale'
-      preLoaderRoute: typeof LocaleAppRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/_app/': {
-      id: '/$locale/_app/'
-      path: '/'
-      fullPath: '/$locale/'
-      preLoaderRoute: typeof LocaleAppIndexRouteImport
-      parentRoute: typeof LocaleAppRoute
-    }
-    '/$locale/auth/callback': {
-      id: '/$locale/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/$locale/auth/callback'
-      preLoaderRoute: typeof LocaleAuthCallbackRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/_app/vulnerabilities': {
-      id: '/$locale/_app/vulnerabilities'
+    '/_app/vulnerabilities': {
+      id: '/_app/vulnerabilities'
       path: '/vulnerabilities'
-      fullPath: '/$locale/vulnerabilities'
-      preLoaderRoute: typeof LocaleAppVulnerabilitiesRouteImport
-      parentRoute: typeof LocaleAppRoute
+      fullPath: '/vulnerabilities'
+      preLoaderRoute: typeof AppVulnerabilitiesRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/$locale/_app/settings': {
-      id: '/$locale/_app/settings'
+    '/_app/settings': {
+      id: '/_app/settings'
       path: '/settings'
-      fullPath: '/$locale/settings'
-      preLoaderRoute: typeof LocaleAppSettingsRouteImport
-      parentRoute: typeof LocaleAppRoute
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/$locale/_app/rules': {
-      id: '/$locale/_app/rules'
+    '/_app/rules': {
+      id: '/_app/rules'
       path: '/rules'
-      fullPath: '/$locale/rules'
-      preLoaderRoute: typeof LocaleAppRulesRouteImport
-      parentRoute: typeof LocaleAppRoute
+      fullPath: '/rules'
+      preLoaderRoute: typeof AppRulesRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/$locale/_app/repositories': {
-      id: '/$locale/_app/repositories'
+    '/_app/repositories': {
+      id: '/_app/repositories'
       path: '/repositories'
-      fullPath: '/$locale/repositories'
-      preLoaderRoute: typeof LocaleAppRepositoriesRouteImport
-      parentRoute: typeof LocaleAppRoute
+      fullPath: '/repositories'
+      preLoaderRoute: typeof AppRepositoriesRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-interface LocaleAppRouteChildren {
-  LocaleAppRepositoriesRoute: typeof LocaleAppRepositoriesRoute
-  LocaleAppRulesRoute: typeof LocaleAppRulesRoute
-  LocaleAppSettingsRoute: typeof LocaleAppSettingsRoute
-  LocaleAppVulnerabilitiesRoute: typeof LocaleAppVulnerabilitiesRoute
-  LocaleAppIndexRoute: typeof LocaleAppIndexRoute
+interface AppRouteChildren {
+  AppRepositoriesRoute: typeof AppRepositoriesRoute
+  AppRulesRoute: typeof AppRulesRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppVulnerabilitiesRoute: typeof AppVulnerabilitiesRoute
+  AppIndexRoute: typeof AppIndexRoute
 }
 
-const LocaleAppRouteChildren: LocaleAppRouteChildren = {
-  LocaleAppRepositoriesRoute: LocaleAppRepositoriesRoute,
-  LocaleAppRulesRoute: LocaleAppRulesRoute,
-  LocaleAppSettingsRoute: LocaleAppSettingsRoute,
-  LocaleAppVulnerabilitiesRoute: LocaleAppVulnerabilitiesRoute,
-  LocaleAppIndexRoute: LocaleAppIndexRoute,
+const AppRouteChildren: AppRouteChildren = {
+  AppRepositoriesRoute: AppRepositoriesRoute,
+  AppRulesRoute: AppRulesRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppVulnerabilitiesRoute: AppVulnerabilitiesRoute,
+  AppIndexRoute: AppIndexRoute,
 }
 
-const LocaleAppRouteWithChildren = LocaleAppRoute._addFileChildren(
-  LocaleAppRouteChildren,
-)
-
-interface LocaleRouteChildren {
-  LocaleAppRoute: typeof LocaleAppRouteWithChildren
-  LocaleLoginRoute: typeof LocaleLoginRoute
-  LocaleAuthCallbackRoute: typeof LocaleAuthCallbackRoute
-}
-
-const LocaleRouteChildren: LocaleRouteChildren = {
-  LocaleAppRoute: LocaleAppRouteWithChildren,
-  LocaleLoginRoute: LocaleLoginRoute,
-  LocaleAuthCallbackRoute: LocaleAuthCallbackRoute,
-}
-
-const LocaleRouteWithChildren =
-  LocaleRoute._addFileChildren(LocaleRouteChildren)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  LocaleRoute: LocaleRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

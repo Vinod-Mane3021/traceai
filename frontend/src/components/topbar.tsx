@@ -1,4 +1,4 @@
-import { useNavigate } from "@/features/i18n-internationalization/lib/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export function Topbar({ title, subtitle }: { title: React.ReactNode; subtitle?:
                 size="sm"
                 onClick={() => {
                   clear();
-                  navigate({ to: "/$locale/login" });
+                  navigate({ to: "/login" });
                 }}
               >
                 <LogOut className="h-4 w-4" />

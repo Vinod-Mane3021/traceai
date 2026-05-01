@@ -4,7 +4,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { useGithubCallback } from "@/features/auth/api/use-github-callback";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
-export const Route = createFileRoute("/$locale/auth/callback")({
+export const Route = createFileRoute("/auth/callback")({
   validateSearch: (search: Record<string, unknown>) => ({
     code: typeof search.code === "string" ? search.code : "",
     installation_id: typeof search.installation_id === "string" ? search.installation_id : undefined,
@@ -13,7 +13,6 @@ export const Route = createFileRoute("/$locale/auth/callback")({
 });
 
 function CallbackPage() {
-  const { locale } = Route.useParams();
   const { code, installation_id } = Route.useSearch();
   const navigate = useNavigate();
   const callback = useGithubCallback();
@@ -26,11 +25,11 @@ function CallbackPage() {
 
     // Case 1: Standard OAuth flow (code present)
     if (code) {
-      const redirect_uri = `${window.location.origin}/${locale}/auth/callback`;
+      const redirect_uri = `${window.location.origin}/auth/callback`;
       callback.mutate(
         { code, redirect_uri },
         {
-          onSuccess: () => navigate({ to: "/$locale", params: { locale } }),
+          onSuccess: () => navigate({ to: "/" }),
         },
       );
       return;
@@ -43,15 +42,15 @@ function CallbackPage() {
         ...user,
         installation_id: parseInt(installation_id, 10),
       });
-      navigate({ to: "/$locale/_app/repositories", params: { locale } });
+      navigate({ to: "/repositories" });
       return;
     }
 
     // Case 3: No recognizable params, or unauthenticated install
     if (!code && !installation_id) {
-       navigate({ to: "/$locale/login", params: { locale } });
+       navigate({ to: "/login" });
     }
-  }, [code, installation_id, callback, navigate, user, setSession, token, locale]);
+  }, [code, installation_id, callback, navigate, user, setSession, token]);
 
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4">

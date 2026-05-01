@@ -1,23 +1,19 @@
 import * as React from "react";
-import { Link } from "@/features/i18n-internationalization/lib/navigation";
-import { useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { LayoutDashboard, GitBranch, ShieldAlert, ScrollText, Settings } from "lucide-react";
 import { env } from "@/lib/env";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/features/i18n-internationalization/lib/provider";
-import { Trans } from "@/features/i18n-internationalization/components/trans";
 
 const items = [
-  { to: "/$locale/", labelKey: "common:nav.dashboard", icon: LayoutDashboard },
-  { to: "/$locale/repositories", labelKey: "common:nav.repositories", icon: GitBranch },
-  { to: "/$locale/vulnerabilities", labelKey: "common:nav.vulnerabilities", icon: ShieldAlert },
-  { to: "/$locale/rules", labelKey: "common:nav.rules", icon: ScrollText },
-  { to: "/$locale/settings", labelKey: "common:nav.settings", icon: Settings },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/repositories", label: "Repositories", icon: GitBranch },
+  { to: "/vulnerabilities", label: "Vulnerabilities", icon: ShieldAlert },
+  { to: "/rules", label: "Rules", icon: ScrollText },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function Sidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { locale } = useTranslation();
 
   return (
     <aside className="hidden md:flex md:w-60 lg:w-64 flex-col border-r border-sidebar-border bg-sidebar">
@@ -28,14 +24,13 @@ export function Sidebar() {
         <div className="leading-tight">
           <div className="text-sm font-semibold">{env.appName}</div>
           <div className="text-[11px] text-muted-foreground">
-            <Trans i18nKey="common:nav.security_console" />
+            security console
           </div>
         </div>
       </div>
       <nav className="px-3 py-2 space-y-0.5">
         {items.map((item) => {
-          // Simplistic active check, could be improved
-          const active = path.includes(item.to.replace("/$locale", `/${locale}`));
+          const active = path === item.to || (item.to !== "/" && path.startsWith(item.to));
           const Icon = item.icon;
           return (
             <Link
@@ -50,19 +45,15 @@ export function Sidebar() {
             >
               <Icon className="h-4 w-4" />
               <span>
-                <Trans i18nKey={item.labelKey} />
+                {item.label}
               </span>
             </Link>
           );
         })}
       </nav>
       <div className="mt-auto p-4 text-[11px] text-muted-foreground">
-        <Trans i18nKey="common:footer.version" /> ·{" "}
-        {env.mockApi ? (
-          <Trans i18nKey="common:footer.mock_data" />
-        ) : (
-          <Trans i18nKey="common:footer.live" />
-        )}
+        Version ·{" "}
+        {env.mockApi ? "Mock Data" : "Live"}
       </div>
     </aside>
   );

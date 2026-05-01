@@ -3,14 +3,13 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { Sidebar } from "@/components/sidebar";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
-export const Route = createFileRoute("/$locale/_app")({
-  beforeLoad: ({ params }) => {
+export const Route = createFileRoute("/_app")({
+  beforeLoad: () => {
     if (typeof window === "undefined") return;
     const token = useAuthStore.getState().token;
     if (!token) {
       throw redirect({
-        to: "/$locale/login",
-        params: { locale: params.locale },
+        to: "/login",
       });
     }
   },

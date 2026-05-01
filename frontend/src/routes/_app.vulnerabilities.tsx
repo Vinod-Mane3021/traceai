@@ -3,7 +3,7 @@ import { Topbar } from "@/components/topbar";
 import { VulnerabilityFeed } from "@/features/analytics/components/vulnerability-feed";
 import { env } from "@/lib/env";
 
-export const Route = createFileRoute("/$locale/_app/vulnerabilities")({
+export const Route = createFileRoute("/_app/vulnerabilities")({
   head: () => ({
     meta: [
       { title: `Vulnerabilities — ${env.appName}` },
