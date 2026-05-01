@@ -45,6 +45,9 @@ When performing these tasks, follow the step-by-step guides in the `.claude/` fo
 - **Patterns**: Follow the **"Trace.ai Non-negotiables"** found in the `.claude/` skill files.
 - **Components**: Functional components with arrow functions. Use `cn` for class merging.
 - **Validation**: Use Zod for all forms and API response schemas.
+- **Internationalization (i18n)**: ALWAYS use the `<Trans />` component from `@/features/i18n-internationalization/components/trans` for all user-facing text. Never use plain strings in components.
+  - **Pattern**: `<Trans i18nKey="namespace:key.path" />` (e.g., `auth:login.title`).
+  - **Structure**: Each JSON file in `messages/[locale]/` acts as a namespace (e.g., `common.json`, `auth.json`).
 
 ## ✅ Verification & Review
 1. **Self-Review**: Read `.claude/agents/code-quality-reviewer.md` and check your work against it.
