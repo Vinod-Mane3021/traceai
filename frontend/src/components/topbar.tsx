@@ -1,18 +1,14 @@
 import { useNavigate } from "@/features/i18n-internationalization/lib/navigation";
 import { useAuthStore } from "@/features/auth/store/auth-store";
-import { LogOut, Sun, Moon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clearSession);
   const navigate = useNavigate();
-  const [dark, setDark] = useState(true);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
+  
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
@@ -24,13 +20,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
           )}
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={() => setDark((d) => !d)}
-            className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground transition"
-            aria-label="Toggle theme"
-          >
-            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          <ThemeToggle />
           {user && (
             <>
               <div className="flex items-center gap-2 rounded-full border border-border bg-card pl-1 pr-3 py-1">

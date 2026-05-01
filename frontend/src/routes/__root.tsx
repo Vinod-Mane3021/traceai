@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
+import { getThemeServerFn } from "@/lib/theme";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const APP_NAME = "Trace.ai";
 const APP_DESCRIPTION = "AI-powered security scanning for GitHub PRs";
@@ -29,6 +31,11 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
+  loader: async () => {
+    return {
+      theme: await getThemeServerFn(),
+    };
+  },
   errorComponent: ({ error }) => (
     <div className="p-10 text-red-500">
       <h1 className="text-xl font-bold">Root Error</h1>
@@ -62,13 +69,15 @@ export const Route = createRootRoute({
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  const { theme } = Route.useLoaderData();
+
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={theme} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeProvider theme={theme}>{children}</ThemeProvider>
         <Scripts />
       </body>
     </html>
