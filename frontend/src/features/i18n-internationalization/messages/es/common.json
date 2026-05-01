@@ -1,0 +1,14 @@
+{
+  "greeting": "¡Hola, {name}!",
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "nav": {
+    "dashboard": "Tablero",
+    "repositories": "Repositorios",
+    "rules": "Reglas",
+    "vulnerabilities": "Vulnerabilidades",
+    "settings": "Ajustes"
+  }
+}

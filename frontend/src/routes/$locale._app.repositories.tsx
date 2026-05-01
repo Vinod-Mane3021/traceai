@@ -3,7 +3,7 @@ import { Topbar } from "@/components/topbar";
 import { RepositoryList } from "@/features/repositories/components/repository-list";
 import { env } from "@/lib/env";
 
-export const Route = createFileRoute("/_app/repositories")({
+export const Route = createFileRoute("/$locale/_app/repositories")({
   head: () => ({
     meta: [
       { title: `Repositories — ${env.appName}` },

@@ -7,7 +7,7 @@ import { VulnerabilityFeed } from "@/features/analytics/components/vulnerability
 import { Skeleton } from "@/components/skeleton-block";
 import { env } from "@/lib/env";
 
-export const Route = createFileRoute("/_app/")({
+export const Route = createFileRoute("/$locale/_app/")({
   head: () => ({
     meta: [
       { title: `Overview — ${env.appName}` },

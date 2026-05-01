@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@/features/i18n-internationalization/lib/navigation";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { LogOut, Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -46,7 +46,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
                 size="sm"
                 onClick={() => {
                   clear();
-                  navigate({ to: "/login" });
+                  navigate({ to: "/$locale/login" });
                 }}
               >
                 <LogOut className="h-4 w-4" />

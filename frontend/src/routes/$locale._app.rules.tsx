@@ -8,7 +8,7 @@ import { env } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { Lock, Globe2 } from "lucide-react";
 
-export const Route = createFileRoute("/_app/rules")({
+export const Route = createFileRoute("/$locale/_app/rules")({
   head: () => ({
     meta: [
       { title: `Custom rules — ${env.appName}` },

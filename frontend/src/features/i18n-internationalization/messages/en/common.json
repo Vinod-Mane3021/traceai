@@ -1,0 +1,14 @@
+{
+  "greeting": "Hello, {name}!",
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "repositories": "Repositories",
+    "rules": "Rules",
+    "vulnerabilities": "Vulnerabilities",
+    "settings": "Settings"
+  }
+}

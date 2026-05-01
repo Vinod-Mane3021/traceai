@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 
@@ -15,7 +16,8 @@ function NotFoundComponent() {
         </p>
         <div className="mt-6">
           <Link
-            to="/"
+            to="/$locale"
+            params={{ locale: "en" }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
           >
             Go home
@@ -27,6 +29,12 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
+  errorComponent: ({ error }) => (
+    <div className="p-10 text-red-500">
+      <h1 className="text-xl font-bold">Root Error</h1>
+      <pre>{error.message}</pre>
+    </div>
+  ),
   head: () => ({
     meta: [
       { charSet: "utf-8" },

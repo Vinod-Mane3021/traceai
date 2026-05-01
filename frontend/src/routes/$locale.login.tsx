@@ -1,3 +1,4 @@
+import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Github, ShieldCheck, Sparkles, Zap } from "lucide-react";
@@ -6,7 +7,7 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useGithubCallback } from "@/features/auth/api/use-github-callback";
 import { env } from "@/lib/env";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/$locale/login")({
   head: () => ({
     meta: [
       { title: `Sign in — ${env.appName}` },
@@ -17,26 +18,27 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  const { locale } = Route.useParams();
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const callback = useGithubCallback();
 
   useEffect(() => {
-    if (token) navigate({ to: "/" });
-  }, [token, navigate]);
+    if (token) navigate({ to: "/$locale/", params: { locale } });
+  }, [token, navigate, locale]);
 
   const handleSignIn = () => {
     if (env.mockApi || !env.githubClientId) {
       // Demo / mock path
       callback.mutate(
-        { code: "mock-code", redirect_uri: `${window.location.origin}/auth/callback` },
+        { code: "mock-code", redirect_uri: `${window.location.origin}/${locale}/auth/callback` },
         {
-          onSuccess: () => navigate({ to: "/" }),
+          onSuccess: () => navigate({ to: "/$locale/", params: { locale } }),
         },
       );
       return;
     }
-    const redirect = `${window.location.origin}/auth/callback`;
+    const redirect = `${window.location.origin}/${locale}/auth/callback`;
     const url = `https://github.com/login/oauth/authorize?client_id=${env.githubClientId}&redirect_uri=${encodeURIComponent(redirect)}&scope=read:user`;
     window.location.href = url;
   };
@@ -46,13 +48,16 @@ function LoginPage() {
       <div className="pointer-events-none absolute inset-0 grid-bg opacity-40" />
       <div
         className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full blur-3xl"
-        style={{ background: "radial-gradient(closest-side, color-mix(in oklab, var(--primary) 35%, transparent), transparent)" }}
+        style={{
+          background:
+            "radial-gradient(closest-side, color-mix(in oklab, var(--primary) 35%, transparent), transparent)",
+        }}
       />
 
       <div className="relative mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 lg:grid-cols-2">
         {/* Brand panel */}
         <div className="hidden lg:flex flex-col justify-between p-10">
-          <Link to="/" className="flex items-center gap-2 w-fit">
+          <Link to="/$locale/" params={{ locale }} className="flex items-center gap-2 w-fit">
             <div className="grid h-9 w-9 place-items-center rounded-md bg-primary/15 text-primary ring-1 ring-primary/30">
               <span className="font-mono text-sm font-bold">T</span>
             </div>
@@ -87,7 +92,9 @@ function LoginPage() {
             </ul>
           </div>
 
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {env.appName}</p>
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} {env.appName}
+          </p>
         </div>
 
         {/* Form panel */}
@@ -104,11 +111,7 @@ function LoginPage() {
               Sign in with your GitHub account to continue.
             </p>
 
-            <Button
-              className="mt-6 w-full h-10"
-              onClick={handleSignIn}
-              disabled={callback.isPending}
-            >
+            <Button className="mt-6 w-full h-10" onClick={handleSignIn} disabled={callback.isPending}>
               <Github className="h-4 w-4" />
               <span className="ml-2">
                 {callback.isPending ? "Signing in…" : "Continue with GitHub"}
@@ -116,14 +119,12 @@ function LoginPage() {
             </Button>
 
             {callback.isError && (
-              <p className="mt-3 text-xs text-destructive">
-                {(callback.error as Error).message}
-              </p>
+              <p className="mt-3 text-xs text-destructive">{(callback.error as Error).message}</p>
             )}
 
             <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
-              By continuing you agree to the Terms of Service and acknowledge
-              the Privacy Policy. We only request <code className="text-foreground">read:user</code> scope.
+              By continuing you agree to the Terms of Service and acknowledge the Privacy Policy. We
+              only request <code className="text-foreground">read:user</code> scope.
             </p>
 
             {env.mockApi && (
