@@ -5,10 +5,13 @@ import { Lock, Globe2, Download, ExternalLink, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { env } from "@/lib/env";
+import { Trans } from "@/features/i18n-internationalization/components/trans";
+import { useTranslation } from "@/features/i18n-internationalization/lib/provider";
 
 export function RepositoryList() {
   const { data, isLoading, isError } = useRepositories();
   const pdf = useSoc2PdfReport();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -19,7 +22,13 @@ export function RepositoryList() {
       </div>
     );
   }
-  if (isError) return <p className="text-sm text-destructive">Failed to load repositories.</p>;
+  if (isError) {
+    return (
+      <p className="text-sm text-destructive">
+        <Trans i18nKey="common:errors.failed_load_repos" />
+      </p>
+    );
+  }
 
   if (data?.length === 0) {
     return (
@@ -27,13 +36,15 @@ export function RepositoryList() {
         <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
           <Globe2 className="h-6 w-6" />
         </div>
-        <h3 className="mt-4 text-base font-semibold">No repositories connected</h3>
+        <h3 className="mt-4 text-base font-semibold">
+          <Trans i18nKey="repositories:list.no_repos_title" />
+        </h3>
         <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-          Install our GitHub App to start scanning your repositories for vulnerabilities.
+          <Trans i18nKey="repositories:list.no_repos_description" />
         </p>
         <Button className="mt-6" asChild>
           <a href={env.githubPublicLink} target="_blank" rel="noreferrer">
-            Install GitHub App
+            <Trans i18nKey="common:actions.install_app" />
           </a>
         </Button>
       </div>
@@ -57,7 +68,11 @@ export function RepositoryList() {
                 <h3 className="truncate text-sm font-semibold">{repo.full_name}</h3>
                 <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                   {repo.private ? <Lock className="h-3 w-3" /> : <Globe2 className="h-3 w-3" />}
-                  {repo.private ? "private" : "public"}
+                  {repo.private ? (
+                    <Trans i18nKey="repositories:list.private" />
+                  ) : (
+                    <Trans i18nKey="repositories:list.public" />
+                  )}
                 </span>
               </div>
               {repo.description && (
@@ -70,7 +85,7 @@ export function RepositoryList() {
                 target="_blank"
                 rel="noreferrer"
                 className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground transition"
-                aria-label="Open on GitHub"
+                aria-label={t("common:actions.open_on_github")}
               >
                 <ExternalLink className="h-4 w-4" />
               </a>
@@ -85,7 +100,9 @@ export function RepositoryList() {
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
-                <span className="ml-1.5 hidden sm:inline">SOC2 PDF</span>
+                <span className="ml-1.5 hidden sm:inline">
+                  <Trans i18nKey="repositories:list.soc2_pdf" />
+                </span>
               </Button>
             </div>
           </div>
@@ -94,3 +111,4 @@ export function RepositoryList() {
     </div>
   );
 }
+

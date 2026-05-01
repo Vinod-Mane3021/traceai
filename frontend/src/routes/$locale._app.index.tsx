@@ -6,6 +6,7 @@ import { useAnalyticsOverview } from "@/features/analytics/api/use-analytics-ove
 import { VulnerabilityFeed } from "@/features/analytics/components/vulnerability-feed";
 import { Skeleton } from "@/components/skeleton-block";
 import { env } from "@/lib/env";
+import { Trans } from "@/features/i18n-internationalization/components/trans";
 
 export const Route = createFileRoute("/$locale/_app/")({
   head: () => ({
@@ -20,24 +21,59 @@ export const Route = createFileRoute("/$locale/_app/")({
 function OverviewPage() {
   const { data, isLoading } = useAnalyticsOverview();
 
-  const criticalCount = data?.severity_distribution.find(
-    (d) => d.severity.toUpperCase() === "CRITICAL"
-  )?.count ?? 0;
+  const criticalCount =
+    data?.severity_distribution.find((d) => d.severity.toUpperCase() === "CRITICAL")?.count ?? 0;
 
   return (
     <>
-      <Topbar title="Overview" subtitle="Security signals across all connected repositories" />
+      <Topbar
+        title={<Trans i18nKey="analytics:overview.title" />}
+        subtitle={<Trans i18nKey="analytics:overview.subtitle" />}
+      />
       <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-6 lg:px-8 lg:py-8">
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
           {isLoading || !data ? (
             Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
           ) : (
             <>
-              <StatCard index={0} label="Repositories" value={data.summary.total_repos_monitored} icon={GitBranch} hint="Connected" />
-              <StatCard index={1} label="Vulnerabilities" value={data.summary.total_vulnerabilities} icon={ShieldAlert} hint="All-time" />
-              <StatCard index={2} label="Open" value={data.summary.open_vulnerabilities} icon={ListChecks} tone="warning" hint="Need attention" />
-              <StatCard index={3} label="Critical" value={criticalCount} icon={AlertOctagon} tone="critical" hint="Highest priority" />
-              <StatCard index={4} label="Scanned PRs" value={data.summary.total_prs_scanned} icon={FileSearch} tone="success" hint="Past 30 days" />
+              <StatCard
+                index={0}
+                label={<Trans i18nKey="analytics:overview.repos_label" />}
+                value={data.summary.total_repos_monitored}
+                icon={GitBranch}
+                hint={<Trans i18nKey="analytics:overview.repos_hint" />}
+              />
+              <StatCard
+                index={1}
+                label={<Trans i18nKey="analytics:overview.vuln_label" />}
+                value={data.summary.total_vulnerabilities}
+                icon={ShieldAlert}
+                hint={<Trans i18nKey="analytics:overview.vuln_hint" />}
+              />
+              <StatCard
+                index={2}
+                label={<Trans i18nKey="analytics:overview.open_label" />}
+                value={data.summary.open_vulnerabilities}
+                icon={ListChecks}
+                tone="warning"
+                hint={<Trans i18nKey="analytics:overview.open_hint" />}
+              />
+              <StatCard
+                index={3}
+                label={<Trans i18nKey="analytics:overview.critical_label" />}
+                value={criticalCount}
+                icon={AlertOctagon}
+                tone="critical"
+                hint={<Trans i18nKey="analytics:overview.critical_hint" />}
+              />
+              <StatCard
+                index={4}
+                label={<Trans i18nKey="analytics:overview.scanned_prs_label" />}
+                value={data.summary.total_prs_scanned}
+                icon={FileSearch}
+                tone="success"
+                hint={<Trans i18nKey="analytics:overview.scanned_prs_hint" />}
+              />
             </>
           )}
         </section>
@@ -49,3 +85,4 @@ function OverviewPage() {
     </>
   );
 }
+

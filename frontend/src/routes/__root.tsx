@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import appCss from "../styles.css?url";
 import { getThemeServerFn } from "@/lib/theme";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Trans } from "@/features/i18n-internationalization/components/trans";
 
 const APP_NAME = "Trace.ai";
 const APP_DESCRIPTION = "AI-powered security scanning for GitHub PRs";
@@ -11,10 +12,14 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h1 className="text-7xl font-bold text-foreground">
+          <Trans i18nKey="common:not_found.title" />
+        </h1>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          <Trans i18nKey="common:not_found.subtitle" />
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          <Trans i18nKey="common:not_found.description" />
         </p>
         <div className="mt-6">
           <Link
@@ -22,7 +27,7 @@ function NotFoundComponent() {
             params={{ locale: "en" }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
           >
-            Go home
+            <Trans i18nKey="common:actions.go_home" />
           </Link>
         </div>
       </div>
@@ -38,7 +43,9 @@ export const Route = createRootRoute({
   },
   errorComponent: ({ error }) => (
     <div className="p-10 text-red-500">
-      <h1 className="text-xl font-bold">Root Error</h1>
+      <h1 className="text-xl font-bold">
+        <Trans i18nKey="common:errors.something_went_wrong" />
+      </h1>
       <pre>{error.message}</pre>
     </div>
   ),

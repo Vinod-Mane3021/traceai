@@ -1,0 +1,21 @@
+{
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Security signals across all connected repositories",
+    "repos_label": "Repositories",
+    "repos_hint": "Connected",
+    "vuln_label": "Vulnerabilities",
+    "vuln_hint": "All-time",
+    "open_label": "Open",
+    "open_hint": "Need attention",
+    "critical_label": "Critical",
+    "critical_hint": "Highest priority",
+    "scanned_prs_label": "Scanned PRs",
+    "scanned_prs_hint": "Past 30 days"
+  },
+  "feed": {
+    "title": "Recent vulnerabilities",
+    "description": "Latest findings across your repositories",
+    "live_feed": "Live feed"
+  }
+}

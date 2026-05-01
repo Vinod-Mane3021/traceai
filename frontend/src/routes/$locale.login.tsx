@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useGithubCallback } from "@/features/auth/api/use-github-callback";
 import { env } from "@/lib/env";
+import { Trans } from "@/features/i18n-internationalization/components/trans";
 
 export const Route = createFileRoute("/$locale/login")({
   head: () => ({
@@ -63,31 +64,34 @@ function LoginPage() {
             </div>
             <div className="leading-tight">
               <div className="text-sm font-semibold">{env.appName}</div>
-              <div className="text-[11px] text-muted-foreground">security console</div>
+              <div className="text-[11px] text-muted-foreground">
+                <Trans i18nKey="common:nav.security_console" />
+              </div>
             </div>
           </Link>
 
           <div className="space-y-6 max-w-md">
             <h2 className="text-3xl font-semibold tracking-tight">
-              Catch vulnerabilities <span className="text-primary">before</span> they ship.
+              <Trans
+                i18nKey="auth:login.hero_title"
+                components={{ highlight: <span className="text-primary" /> }}
+              />
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Trace.ai connects to your GitHub installations and runs AI-powered
-              security analysis on every pull request — surfacing critical issues
-              with the context your team actually needs.
+              <Trans i18nKey="auth:login.hero_description" />
             </p>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
                 <ShieldCheck className="h-4 w-4 mt-0.5 text-primary" />
-                Continuous scanning across all repositories
+                <Trans i18nKey="auth:login.feature_scanning" />
               </li>
               <li className="flex items-start gap-3">
                 <Sparkles className="h-4 w-4 mt-0.5 text-primary" />
-                AI explanations and suggested fixes
+                <Trans i18nKey="auth:login.feature_explaining" />
               </li>
               <li className="flex items-start gap-3">
                 <Zap className="h-4 w-4 mt-0.5 text-primary" />
-                One-click SOC2 audit reports
+                <Trans i18nKey="auth:login.feature_soc2" />
               </li>
             </ul>
           </div>
@@ -106,15 +110,21 @@ function LoginPage() {
               </div>
               <span className="text-sm font-semibold">{env.appName}</span>
             </div>
-            <h1 className="text-xl font-semibold tracking-tight">Welcome back</h1>
+            <h1 className="text-xl font-semibold tracking-tight">
+              <Trans i18nKey="auth:login.welcome_back" />
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Sign in with your GitHub account to continue.
+              <Trans i18nKey="auth:login.github_signin_description" />
             </p>
 
             <Button className="mt-6 w-full h-10" onClick={handleSignIn} disabled={callback.isPending}>
               <Github className="h-4 w-4" />
               <span className="ml-2">
-                {callback.isPending ? "Signing in…" : "Continue with GitHub"}
+                {callback.isPending ? (
+                  <Trans i18nKey="auth:login.signing_in" />
+                ) : (
+                  <Trans i18nKey="auth:login.continue_with_github" />
+                )}
               </span>
             </Button>
 
@@ -123,13 +133,12 @@ function LoginPage() {
             )}
 
             <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
-              By continuing you agree to the Terms of Service and acknowledge the Privacy Policy. We
-              only request <code className="text-foreground">read:user</code> scope.
+              <Trans i18nKey="auth:login.legal_agreement" values={{ scope: "read:user" }} />
             </p>
 
             {env.mockApi && (
               <div className="mt-5 rounded-md border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-                Mock mode is on — sign-in will use sample data.
+                <Trans i18nKey="auth:login.mock_mode_notice" />
               </div>
             )}
           </div>
@@ -138,3 +147,4 @@ function LoginPage() {
     </div>
   );
 }
+

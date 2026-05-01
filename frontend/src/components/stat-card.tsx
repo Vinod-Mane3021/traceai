@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
-  label: string;
+  label: React.ReactNode;
   value: number | string;
   icon: LucideIcon;
-  hint?: string;
+  hint?: React.ReactNode;
   tone?: "default" | "critical" | "success" | "warning";
   index?: number;
 }

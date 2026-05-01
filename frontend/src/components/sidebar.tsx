@@ -5,18 +5,19 @@ import { LayoutDashboard, GitBranch, ShieldAlert, ScrollText, Settings } from "l
 import { env } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/features/i18n-internationalization/lib/provider";
+import { Trans } from "@/features/i18n-internationalization/components/trans";
 
 const items = [
-  { to: "/$locale/", labelKey: "nav.dashboard", icon: LayoutDashboard },
-  { to: "/$locale/repositories", labelKey: "nav.repositories", icon: GitBranch },
-  { to: "/$locale/vulnerabilities", labelKey: "nav.vulnerabilities", icon: ShieldAlert },
-  { to: "/$locale/rules", labelKey: "nav.rules", icon: ScrollText },
-  { to: "/$locale/settings", labelKey: "nav.settings", icon: Settings },
+  { to: "/$locale/", labelKey: "common:nav.dashboard", icon: LayoutDashboard },
+  { to: "/$locale/repositories", labelKey: "common:nav.repositories", icon: GitBranch },
+  { to: "/$locale/vulnerabilities", labelKey: "common:nav.vulnerabilities", icon: ShieldAlert },
+  { to: "/$locale/rules", labelKey: "common:nav.rules", icon: ScrollText },
+  { to: "/$locale/settings", labelKey: "common:nav.settings", icon: Settings },
 ] as const;
 
 export function Sidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { t, locale } = useTranslation();
+  const { locale } = useTranslation();
 
   return (
     <aside className="hidden md:flex md:w-60 lg:w-64 flex-col border-r border-sidebar-border bg-sidebar">
@@ -26,7 +27,9 @@ export function Sidebar() {
         </div>
         <div className="leading-tight">
           <div className="text-sm font-semibold">{env.appName}</div>
-          <div className="text-[11px] text-muted-foreground">security console</div>
+          <div className="text-[11px] text-muted-foreground">
+            <Trans i18nKey="common:nav.security_console" />
+          </div>
         </div>
       </div>
       <nav className="px-3 py-2 space-y-0.5">
@@ -46,14 +49,22 @@ export function Sidebar() {
               )}
             >
               <Icon className="h-4 w-4" />
-              <span>{t(item.labelKey)}</span>
+              <span>
+                <Trans i18nKey={item.labelKey} />
+              </span>
             </Link>
           );
         })}
       </nav>
       <div className="mt-auto p-4 text-[11px] text-muted-foreground">
-        v1.0.0 · {env.mockApi ? "mock data" : "live"}
+        <Trans i18nKey="common:footer.version" /> ·{" "}
+        {env.mockApi ? (
+          <Trans i18nKey="common:footer.mock_data" />
+        ) : (
+          <Trans i18nKey="common:footer.live" />
+        )}
       </div>
     </aside>
   );
 }
+

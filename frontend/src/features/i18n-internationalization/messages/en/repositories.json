@@ -1,0 +1,9 @@
+{
+  "list": {
+    "no_repos_title": "No repositories connected",
+    "no_repos_description": "Install our GitHub App to start scanning your repositories for vulnerabilities.",
+    "private": "private",
+    "public": "public",
+    "soc2_pdf": "SOC2 PDF"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "list": {
+    "add_title": "Add new rule",
+    "add_description": "Custom rules are evaluated by the scanner on every PR for this repository.",
+    "placeholder": "e.g. Never use MD5 hashing, enforce SHA-256.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "add_button": "Add rule",
+    "rules_title": "Rules",
+    "total": "{count} total",
+    "no_rules": "No custom rules yet for this repository.",
+    "delete_confirm": "Delete this rule? This cannot be undone.",
+    "added_at": "Added {date}"
+  }
+}

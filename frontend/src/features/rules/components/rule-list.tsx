@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import type { CustomRule } from "@/types/rule";
+import { Trans } from "@/features/i18n-internationalization/components/trans";
+import { useTranslation } from "@/features/i18n-internationalization/lib/provider";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -25,6 +27,7 @@ export function RuleList({ repositoryId }: { repositoryId: number }) {
   const createRule = useCreateRule();
   const [draft, setDraft] = useState("");
   const [active, setActive] = useState(true);
+  const { t } = useTranslation();
 
   const onCreate = () => {
     const text = draft.trim();
@@ -43,13 +46,15 @@ export function RuleList({ repositoryId }: { repositoryId: number }) {
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-        <h3 className="text-sm font-semibold tracking-tight">Add new rule</h3>
+        <h3 className="text-sm font-semibold tracking-tight">
+          <Trans i18nKey="rules:list.add_title" />
+        </h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Custom rules are evaluated by the scanner on every PR for this repository.
+          <Trans i18nKey="rules:list.add_description" />
         </p>
         <div className="mt-3 grid gap-3">
           <Textarea
-            placeholder="e.g. Never use MD5 hashing, enforce SHA-256."
+            placeholder={t("rules:list.placeholder")}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={3}
@@ -58,7 +63,13 @@ export function RuleList({ repositoryId }: { repositoryId: number }) {
           <div className="flex items-center justify-between gap-3">
             <label className="flex items-center gap-2 text-xs text-muted-foreground">
               <Switch checked={active} onCheckedChange={setActive} />
-              <span>{active ? "Active" : "Inactive"}</span>
+              <span>
+                {active ? (
+                  <Trans i18nKey="rules:list.active" />
+                ) : (
+                  <Trans i18nKey="rules:list.inactive" />
+                )}
+              </span>
             </label>
             <Button size="sm" onClick={onCreate} disabled={!draft.trim() || createRule.isPending}>
               {createRule.isPending ? (
@@ -66,7 +77,9 @@ export function RuleList({ repositoryId }: { repositoryId: number }) {
               ) : (
                 <Plus className="h-4 w-4" />
               )}
-              <span className="ml-1.5">Add rule</span>
+              <span className="ml-1.5">
+                <Trans i18nKey="rules:list.add_button" />
+              </span>
             </Button>
           </div>
         </div>
@@ -74,8 +87,12 @@ export function RuleList({ repositoryId }: { repositoryId: number }) {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold tracking-tight">Rules</h3>
-          <span className="text-xs text-muted-foreground">{data?.length ?? 0} total</span>
+          <h3 className="text-sm font-semibold tracking-tight">
+            <Trans i18nKey="rules:list.rules_title" />
+          </h3>
+          <span className="text-xs text-muted-foreground">
+            <Trans i18nKey="rules:list.total" values={{ count: data?.length ?? 0 }} />
+          </span>
         </div>
 
         {isLoading ? (
@@ -85,10 +102,14 @@ export function RuleList({ repositoryId }: { repositoryId: number }) {
             ))}
           </div>
         ) : isError ? (
-          <p className="text-sm text-destructive">Failed to load rules.</p>
+          <p className="text-sm text-destructive">
+            <Trans i18nKey="common:errors.failed_load_rules" />
+          </p>
         ) : !data || data.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-card/40 p-8 text-center">
-            <p className="text-sm text-muted-foreground">No custom rules yet for this repository.</p>
+            <p className="text-sm text-muted-foreground">
+              <Trans i18nKey="rules:list.no_rules" />
+            </p>
           </div>
         ) : (
           <div className="grid gap-2">
@@ -117,15 +138,16 @@ function RuleRow({ rule }: { rule: CustomRule }) {
   const [text, setText] = useState(rule.rule_text);
   const updateRule = useUpdateRule();
   const deleteRule = useDeleteRule();
+  const { t } = useTranslation();
 
   const onSave = () => {
-    const t = text.trim();
-    if (!t || t === rule.rule_text) {
+    const tVal = text.trim();
+    if (!tVal || tVal === rule.rule_text) {
       setEditing(false);
       return;
     }
     updateRule.mutate(
-      { ruleId: rule.id, patch: { rule_text: t } },
+      { ruleId: rule.id, patch: { rule_text: tVal } },
       { onSuccess: () => setEditing(false) },
     );
   };
@@ -135,7 +157,7 @@ function RuleRow({ rule }: { rule: CustomRule }) {
   };
 
   const onDelete = () => {
-    if (!confirm("Delete this rule? This cannot be undone.")) return;
+    if (!confirm(t("rules:list.delete_confirm"))) return;
     deleteRule.mutate({ ruleId: rule.id, repositoryId: rule.repository_id });
   };
 
@@ -160,7 +182,9 @@ function RuleRow({ rule }: { rule: CustomRule }) {
             <p className="text-sm leading-relaxed text-foreground">{rule.rule_text}</p>
           )}
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-            <span>Added {formatDate(rule.created_at)}</span>
+            <span>
+              <Trans i18nKey="rules:list.added_at" values={{ date: formatDate(rule.created_at) }} />
+            </span>
             <span className="font-mono">#{rule.id}</span>
           </div>
         </div>
@@ -212,3 +236,4 @@ function RuleRow({ rule }: { rule: CustomRule }) {
     </div>
   );
 }
+

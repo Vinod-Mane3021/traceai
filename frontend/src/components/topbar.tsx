@@ -17,7 +17,7 @@ const localeLabels: Record<string, string> = {
   es: "Español",
 };
 
-export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
+export function Topbar({ title, subtitle }: { title: React.ReactNode; subtitle?: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clearSession);
   const navigate = useNavigate();

@@ -2,13 +2,38 @@
   "greeting": "¡Hola, {name}!",
   "actions": {
     "save": "Guardar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "open_on_github": "Abrir en GitHub",
+    "install_app": "Instalar GitHub App",
+    "try_again": "Intentar de nuevo",
+    "go_home": "Ir al inicio"
   },
   "nav": {
-    "dashboard": "Tablero",
+    "dashboard": "Panel",
     "repositories": "Repositorios",
     "rules": "Reglas",
     "vulnerabilities": "Vulnerabilidades",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "security_console": "consola de seguridad"
+  },
+  "errors": {
+    "something_went_wrong": "Algo salió mal",
+    "unexpected_error": "Error inesperado",
+    "failed_load_repos": "Error al cargar los repositorios.",
+    "failed_load_rules": "Error al cargar las reglas.",
+    "failed_load_feed": "Error al cargar el feed."
+  },
+  "not_found": {
+    "title": "404",
+    "subtitle": "Página no encontrada",
+    "description": "La página que buscas no existe o ha sido movida."
+  },
+  "footer": {
+    "version": "v1.0.0",
+    "mock_data": "datos de prueba",
+    "live": "en vivo"
   }
 }
