@@ -4,6 +4,13 @@ import structlog
 from pydantic import BaseModel
 from app.core.config import settings
 from app.utils.security import create_access_token
+from app.repositories.user_repo import UserRepo
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
+from app.api.dependencies import get_db
+from app.schemas.user import CreateUser
+
+
 
 logger = structlog.get_logger(__name__)
 
@@ -23,7 +30,10 @@ class AuthCallbackResponse(BaseModel):
     user: AuthUser
 
 @router.post("/github/callback", response_model=AuthCallbackResponse)
-async def github_oauth_callback(payload: GitHubCode):
+async def github_oauth_callback(
+    payload: GitHubCode,
+    db: AsyncSession = Depends(get_db)
+):
     """Exchanges the GitHub OAuth code for an access token and user profile."""
     log = logger.bind(auth_flow="github_oauth")
     log.info("auth_callback_received", 
@@ -92,6 +102,9 @@ async def github_oauth_callback(payload: GitHubCode):
         log.info("github_profile_received", 
                  message="GitHub user profile successfully retrieved",
                  username=user_data.get("login"))
+        
+        print("user_data")
+        print(user_data)
 
         # 3. Fetch User's Installations for this App
         # This helps the frontend know which installation to use immediately
@@ -113,8 +126,19 @@ async def github_oauth_callback(payload: GitHubCode):
             log.warning("user_installations_fetch_failed", 
                         status_code=inst_response.status_code,
                         response=inst_response.text)
+            
+    # create user into database
+    user_repo = UserRepo(db)
+    user = CreateUser(
+        avatar_url=user_data["avatar_url"],
+        github_id=user_data["id"],
+        username=user_data["login"],
+        installation_id=installation_id
+    )
+    await user_repo.create_user_if_not_exists(user_data=user)
+    
 
-    # 4. Create a local JWT for the React frontend
+    # 4. Create a local JWT for the frontend
     local_token = create_access_token(data={"sub": user_data["login"]})
     log.info("local_jwt_generated", 
              message="Local session JWT generated for user",

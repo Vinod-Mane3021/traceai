@@ -61,3 +61,11 @@ class CustomRule(Base):
 
     # Relationships
     repository = relationship("Repository", back_populates="custom_rules")
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, index=True, nullable=False)
+    avatar_url = Column(String(255), nullable=False)
+    installation_id = Column(Integer, nullable=True)
+    github_id = Column(BigInteger, unique=True, index=True, nullable=False)
