@@ -18,11 +18,10 @@ class UserRepo:
         log.info("checking_user_existence", message="Checking if user already exists in the database", username=user_data.username)
 
         # find the user
-        stmt = (
+        existing_user_response = await self.session.execute(
             select(User)
             .where(User.github_id == user_data.github_id)
         )
-        existing_user_response = await self.session.execute(stmt)
         existing_user = existing_user_response.scalars().first()
 
         if existing_user:
@@ -31,7 +30,8 @@ class UserRepo:
         
         # create the user
         log.info("creating_new_user", message="User not found, creating a new user record", username=user_data.username)
-        stmt = (
+        
+        result = await self.session.execute(
             insert(User)
             .values(
                 username=user_data.username,
@@ -39,9 +39,8 @@ class UserRepo:
                 github_id=user_data.github_id,
                 installation_id=user_data.installation_id
             )
+            .returning(User)
         )
-        
-        result = await self.session.execute(stmt)
         await self.session.commit()
         created_user = result.scalar_one()
         log.info("user_created", message="Successfully created new user record", user_id=created_user.id)

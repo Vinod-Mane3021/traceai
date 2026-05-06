@@ -103,8 +103,6 @@ async def github_oauth_callback(
                  message="GitHub user profile successfully retrieved",
                  username=user_data.get("login"))
         
-        print("user_data")
-        print(user_data)
 
         # 3. Fetch User's Installations for this App
         # This helps the frontend know which installation to use immediately
@@ -139,7 +137,7 @@ async def github_oauth_callback(
     
 
     # 4. Create a local JWT for the frontend
-    local_token = create_access_token(data={"sub": user_data["login"]})
+    local_token = create_access_token(data={"sub": user_data["login"], "sub_github_id": user_data["id"]})
     log.info("local_jwt_generated", 
              message="Local session JWT generated for user",
              username=user_data.get("login"))
