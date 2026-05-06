@@ -133,11 +133,17 @@ async def github_oauth_callback(
         username=user_data["login"],
         installation_id=installation_id
     )
-    await user_repo.create_user_if_not_exists(user_data=user)
+    user = await user_repo.create_user_if_not_exists(user_data=user)
     
 
     # 4. Create a local JWT for the frontend
-    local_token = create_access_token(data={"sub": user_data["login"], "sub_github_id": user_data["id"]})
+    local_token = create_access_token(
+        data={
+            "sub": user_data["login"], 
+            "github_id": user_data["id"],
+            "user_id": user.id
+        }
+    )
     log.info("local_jwt_generated", 
              message="Local session JWT generated for user",
              username=user_data.get("login"))
