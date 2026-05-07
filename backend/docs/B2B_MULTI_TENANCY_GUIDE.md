@@ -66,10 +66,15 @@ Intersection table for multi-org support and RBAC.
 To reduce friction, the application guides the user directly to their active workspace:
 1.  **Login:** User authenticates.
 2.  **Logic:**
-    - **IF** `user.last_active_org_id` exists: Redirect to `/dashboard/{org_id}`.
-    - **ELSE:** Check GitHub for installations.
-        - **IF Found:** Pick the first one, set as `last_active_org_id`, and redirect.
-        - **IF None:** Show the **"Install Trace AI Security"** button.
+    - **IF** `user.last_active_org_id` exists:
+        - Redirect to `/dashboard/{org_id}`.
+    - **ELSE (First-time user or no active context):** Check GitHub API for any authorized installations.
+        - **IF Found:**
+            - Pick the first installation, sync the membership, set as `last_active_org_id`.
+            - Redirect to `/dashboard/{org_id}`.
+        - **IF None:** 
+            - **IMMEDIATELY redirect** to the **"Install Trace AI Security"** onboarding page. 
+            - This page provides a clear call-to-action to install the app on GitHub.
 
 ### 4.3. Handling the Installation "Race Condition"
 When a user installs the app, GitHub triggers a Webhook (`created`) and a Redirect (`setup_url`) simultaneously.

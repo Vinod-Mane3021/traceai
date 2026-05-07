@@ -25,6 +25,11 @@ class Organization(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+    # Relationships
+    organization_members = relationship("OrganizationMember", back_populates="organization")
+    repositories = relationship("Repository", back_populates="organization")
+    users = relationship("User", back_populates="active_organization")
+
 class OrganizationMember(Base):
     __tablename__ = 'organization_members'
 
@@ -107,5 +112,6 @@ class User(Base):
     github_id = Column(BigInteger, unique=True, index=True, nullable=False)
     last_active_org_id = Column(Integer, ForeignKey('organizations.id'))
 
+    # Relationships
     active_organization = relationship("Organization", back_populates="users")
-    
+    organization_members = relationship("OrganizationMember", back_populates="user")
