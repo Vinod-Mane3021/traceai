@@ -37,7 +37,6 @@ class UserRepo:
                 username=user_data.username,
                 avatar_url=user_data.avatar_url,
                 github_id=user_data.github_id,
-                installation_id=user_data.installation_id
             )
             .returning(User)
         )

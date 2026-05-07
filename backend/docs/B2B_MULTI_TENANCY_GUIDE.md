@@ -44,11 +44,13 @@ Intersection table for multi-org support and RBAC.
 - All webhooks must link incoming repositories to their parent Organization via the `installation_id`.
 
 #### `users`
-- (Optional) Remove `installation_id` if users can belong to multiple organizations via `organization_members`.
+- (Optional) Remove `installation_id`.
+- Add `last_active_org_id`: Integer (ForeignKey -> `organizations.id`). This acts as a pointer to the user's most recently used workspace.
+- **Model Recommendation:** Rename the relationship from `organization` to `active_organization` to explicitly state this is a context pointer, not the user's only membership.
 
 ---
 
-## 4. Authentication & Authorization Flow
+## 4. Authentication & Onboarding Journey
 
 ### 4.1. Account Discovery & Sync
 1.  **OAuth Login:** User logs in via GitHub.
@@ -56,11 +58,28 @@ Intersection table for multi-org support and RBAC.
 3.  **Tenant Processing:** For each installation:
     - Extract `account.login` (Name) and `account.type` (Type).
     - Upsert the `Organization` with the correct `type`.
-    - Link the `User` to the `Organization` in `organization_members`.
+    - Link the `User` to the `Organization` in `organization_members` (Auto-Join Strategy).
     - If `type == "User"`, the user is automatically granted `ADMIN` of their own personal org.
     - If `type == "Organization"`, role is determined by GitHub Org permissions (e.g., GitHub Org Owners become Trace.ai Admins).
 
-### 4.2. JWT Payload
+### 4.2. Active Org Dashboard Flow
+To reduce friction, the application guides the user directly to their active workspace:
+1.  **Login:** User authenticates.
+2.  **Logic:**
+    - **IF** `user.last_active_org_id` exists: Redirect to `/dashboard/{org_id}`.
+    - **ELSE:** Check GitHub for installations.
+        - **IF Found:** Pick the first one, set as `last_active_org_id`, and redirect.
+        - **IF None:** Show the **"Install Trace AI Security"** button.
+
+### 4.3. Handling the Installation "Race Condition"
+When a user installs the app, GitHub triggers a Webhook (`created`) and a Redirect (`setup_url`) simultaneously.
+- **Problem:** The user might arrive at the Setup page before the Webhook has finished creating the Organization in the DB.
+- **Solution:** 
+    - The Setup page should show a loading state: *"Finalizing your workspace..."*.
+    - It should poll the backend (e.g., `GET /api/v1/organizations/check/{installation_id}`) until the record is found.
+    - Once found, the backend sets the `last_active_org_id` and the frontend redirects to the Dashboard.
+
+### 4.4. JWT Payload
 The local JWT includes the `organization_id` to establish the "Active Context".
 ```json
 {

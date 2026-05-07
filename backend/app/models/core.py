@@ -1,7 +1,42 @@
-from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean, Text, ForeignKey
+import enum
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, Boolean, Text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
+
+# enums
+
+class OrganizationType(enum.Enum):
+    ORGANIZATION = "ORGANIZATION"
+    USER = "USER"
+
+class OrganizationMemberRole(enum.Enum):
+    ADMIN = "ADMIN"
+    MEMBER = "MEMBER"
+
+
+class Organization(Base):
+    __tablename__ = 'organizations'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    type = Column(Enum(OrganizationType), nullable=False)
+    github_installation_id = Column(BigInteger, unique=True, index=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class OrganizationMember(Base):
+    __tablename__ = 'organization_members'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    organization_id = Column(Integer, ForeignKey('organizations.id'))
+    role = Column(Enum(OrganizationMemberRole), nullable=False)
+    joined_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="organization_members")
+    organization = relationship("Organization", back_populates="organization_members")
+
 
 class Repository(Base):
     __tablename__ = 'repositories'
@@ -10,12 +45,14 @@ class Repository(Base):
     github_id = Column(BigInteger, unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
+    organization_id = Column(Integer, ForeignKey('organizations.id'))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
     pull_requests = relationship("PullRequest" , back_populates="repository")
     custom_rules = relationship("CustomRule", back_populates="repository")
+    organization = relationship("Organization", back_populates="repositories")
 
 class PullRequest(Base):
     __tablename__ = 'pull_requests'
@@ -67,5 +104,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(255), unique=True, index=True, nullable=False)
     avatar_url = Column(String(255), nullable=False)
-    installation_id = Column(Integer, nullable=True)
     github_id = Column(BigInteger, unique=True, index=True, nullable=False)
+    last_active_org_id = Column(Integer, ForeignKey('organizations.id'))
+
+    active_organization = relationship("Organization", back_populates="users")
+    

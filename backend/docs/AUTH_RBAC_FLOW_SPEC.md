@@ -36,15 +36,28 @@ This document provides a detailed technical walkthrough of the Authentication an
     *   This returns a list of organizations/accounts where the Trace.ai App is installed.
     *   *Example Result:* `[{id: 123, account: {login: "AcmeCorp"}}]`.
 
-### Step 3: Database Synchronization
-1.  **User Sync:** Find or create the `User` in the local DB.
-2.  **Org Sync:** For each installation found in Step 2, find the corresponding `Organization` in the local DB (created via webhook).
-3.  **Membership Sync:**
-    *   If the user isn't a member of the Org in our DB, add them.
-    *   If they are the first member, assign **ADMIN**. Otherwise, assign **VIEWER**.
+### Step 3: Database Synchronization (Auto-Join Strategy)
+
+The application follows a **"Separation of Concerns"** model to keep the database in sync with GitHub:
+*   **Webhooks** manage the **Tenant** (Organizations & Repositories).
+*   **Login Flow** manages the **Membership** (Linking Users to Organizations).
+
+#### 3.1 Membership Auto-Join Logic
+During the OAuth callback, the backend performs a "Zero-Touch" sync:
+
+1.  **User Sync:** Find or create the `User` record based on their global GitHub ID.
+2.  **Discovery:** Retrieve the list of installations from `GET /user/installations`.
+3.  **Auto-Join:** For each installation returned:
+    *   Find the corresponding `Organization` in our DB (which was created/updated by the Webhook).
+    *   If the user is NOT already a member of this Org in our DB, **automatically create** a row in `organization_members`.
+4.  **Role Assignment:**
+    *   If the user has "Admin" permissions on the GitHub Installation, assign the **ADMIN** role in Trace.ai.
+    *   Otherwise, assign the **MEMBER** role.
+
+*Result:* The user logs in and instantly has access to all their relevant organization workspaces without needing an invitation.
 
 ### Step 4: JWT Issuance
-The backend generates a JWT containing the user's identity and their **Current Organization Context**.
+The backend generates a JWT containing the user's identity and their **Active Organization Context**.
 
 ```json
 {

@@ -114,6 +114,8 @@ async def github_oauth_callback(
         if inst_response.status_code == 200:
             inst_data = inst_response.json()
             installations = inst_data.get("installations", [])
+            print("installations_899900")
+            print(inst_data)
             if installations:
                 # For simplicity in this demo, we take the first active installation
                 installation_id = installations[0].get("id")
@@ -131,7 +133,6 @@ async def github_oauth_callback(
         avatar_url=user_data["avatar_url"],
         github_id=user_data["id"],
         username=user_data["login"],
-        installation_id=installation_id
     )
     user = await user_repo.create_user_if_not_exists(user_data=user)
     
