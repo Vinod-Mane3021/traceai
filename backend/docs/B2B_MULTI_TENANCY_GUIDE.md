@@ -3,14 +3,29 @@
 ## 1. Overview
 This document outlines the architectural changes required to transition the application to a robust B2B multi-tenant model with Role-Based Access Control (RBAC). The goal is to ensure strict data isolation and granular permission management.
 
-## 2. Database Schema Changes
+## 2. Defining the "Tenant" (Organization vs. Personal)
 
-### 2.1. New Tables
+The application recognizes two types of tenants based on the GitHub `account.type` field provided in webhooks and API responses. Both types are stored in the `organizations` table but behave differently regarding membership.
+
+### 2.1. Organization Accounts (`type: "Organization"`)
+- **Nature:** Represents a business, team, or open-source org.
+- **Membership:** Designed for multi-user access. Users gain access if they are members of the GitHub organization and have the Trace.ai app authorized.
+- **RBAC:** Admins can invite/manage other members of the org within Trace.ai.
+
+### 2.2. Personal Accounts (`type: "User"`)
+- **Nature:** Represents an individual's personal repositories.
+- **Membership:** Typically restricted to the owner of the account.
+- **RBAC:** The owner is the permanent ADMIN. Other users usually do not have access to a personal tenant unless explicitly invited for collaboration.
+
+## 3. Database Schema Changes
+
+### 3.1. New Tables
 
 #### `organizations`
-Represents a customer/tenant (e.g., a GitHub Organization or a specific User's personal installation).
+Represents a customer/tenant.
 - `id`: Integer (PK)
-- `name`: String (e.g., "Acme Corp")
+- `name`: String (e.g., "Acme Corp" or "johndoe")
+- `type`: Enum ("ORGANIZATION", "USER") - *Added to distinguish account types*
 - `github_installation_id`: BigInteger (Unique, Index)
 - `created_at`: DateTime
 - `updated_at`: DateTime
@@ -22,7 +37,7 @@ Intersection table for multi-org support and RBAC.
 - `role`: Enum ("ADMIN", "MEMBER", "VIEWER")
 - `joined_at`: DateTime
 
-### 2.2. Modified Tables
+### 3.2. Modified Tables
 
 #### `repositories`
 - Add `organization_id`: Integer (FK -> organizations.id, Index).
@@ -33,88 +48,71 @@ Intersection table for multi-org support and RBAC.
 
 ---
 
-## 3. Authentication & Authorization
+## 4. Authentication & Authorization Flow
 
-### 3.1. OAuth Flow Updates
-1.  **Installation Discovery:** After GitHub OAuth, fetch `/user/installations`.
-2.  **Organization Sync:**
-    - For each `installation_id`, find or create the `Organization` record.
-    - Add the user to `organization_members` if not already present.
-3.  **JWT Payload:** The local JWT should include:
-    - `organization_id`: The ID of the currently active organization context.
-    - `role`: The user's role within that organization.
+### 4.1. Account Discovery & Sync
+1.  **OAuth Login:** User logs in via GitHub.
+2.  **Fetch Installations:** Backend calls `GET /user/installations`.
+3.  **Tenant Processing:** For each installation:
+    - Extract `account.login` (Name) and `account.type` (Type).
+    - Upsert the `Organization` with the correct `type`.
+    - Link the `User` to the `Organization` in `organization_members`.
+    - If `type == "User"`, the user is automatically granted `ADMIN` of their own personal org.
+    - If `type == "Organization"`, role is determined by GitHub Org permissions (e.g., GitHub Org Owners become Trace.ai Admins).
 
-### 3.2. Scoped Dependencies
-Update `get_current_user` to return an object containing the user's ID, the active `organization_id`, and their `role`.
+### 4.2. JWT Payload
+The local JWT includes the `organization_id` to establish the "Active Context".
+```json
+{
+  "org_id": 101,
+  "role": "ADMIN",
+  "org_type": "ORGANIZATION"
+}
+```
 
 ---
 
-## 4. Webhook Lifecycle Management
+## 5. Webhook Lifecycle Management
 
-The `installation` webhook is the "Glue" that manages the Tenant lifecycle. It must be implemented to ensure the system reacts to GitHub App events.
-
-### 4.1. Handling `installation` Event
+### 5.1. Handling `installation` Event
 - **Action: `created`**: 
-    1. Create/Update the `Organization` using `installation.id`.
+    1. Create/Update the `Organization` using `installation.id` and `installation.account.type`.
     2. Immediately fetch all repositories for this installation via GitHub API.
     3. Save repositories to the DB, setting their `organization_id`.
 - **Action: `deleted`**:
     1. Find the `Organization` by `installation.id`.
-    2. Mark as `inactive`. This immediately revokes access for all members in the next JWT validation.
+    2. Mark as `inactive`.
 - **Action: `suspend`**: Mark the Org as `suspended`.
-
-### 4.2. Handling `installation_repositories` Event
-- **Action: `added`**: Add new `Repository` rows linked to the `organization_id`.
-- **Action: `removed`**: Delete or deactivate `Repository` rows.
 
 ---
 
-## 5. Data Isolation (The Fix)
+## 6. Data Isolation (The Fix)
 
-### 5.1. Scoped Repository Queries
+### 6.1. Scoped Repository Queries
 All analytics queries must join through `Repository` and filter by `organization_id`.
 
-**Before (Vulnerable):**
-```sql
-SELECT * FROM vulnerabilities ORDER BY created_at DESC LIMIT 10;
-```
-
-**After (Secure):**
+**Example SQL:**
 ```sql
 SELECT v.* 
 FROM vulnerabilities v
 JOIN pull_requests pr ON v.pull_request_id = pr.id
 JOIN repositories r ON pr.repository_id = r.id
-WHERE r.organization_id = :current_org_id
-ORDER BY v.created_at DESC 
-LIMIT 10;
+WHERE r.organization_id = :current_org_id;
 ```
 
 ---
 
-## 6. Role-Based Access Control (RBAC)
+## 7. Role-Based Access Control (RBAC)
 
-### 6.1. Defined Roles
-- **ADMIN:** Full access to organization settings, custom rules, and member management.
-- **MEMBER:** Can view analytics, trigger scans, and manage vulnerabilities.
-- **VIEWER:** Read-only access to analytics and reports.
-
-### 6.2. Implementation via Middleware
-Create a `check_permission` dependency to enforce roles on specific routes:
-
-```python
-@router.post("/rules")
-async def create_rule(
-    current_user = Depends(require_role(["ADMIN"]))
-):
-    ...
-```
+### 7.1. Defined Roles
+- **ADMIN:** Full access to settings, custom rules, and members.
+- **MEMBER:** Can view analytics and trigger scans.
+- **VIEWER:** Read-only access.
 
 ---
 
-## 7. Migration Path
+## 8. Migration Path
 1.  **Step 1:** Create the `organizations` table.
-2.  **Step 2:** Populate `organizations` from existing unique `installation_id` values in the `users` and `repositories` tables.
-3.  **Step 3:** Add `organization_id` column to `repositories` and populate via `installation_id` mapping.
-4.  **Step 4:** Deploy code updates for Auth and Analytics queries.
-5.  **Step 5:** Enforce NOT NULL constraints on `organization_id` columns.
+2.  **Step 2:** Populate `organizations` from existing data, using `github_id` to infer `type` if possible, or defaulting to `USER`.
+3.  **Step 3:** Add `organization_id` to `repositories`.
+4.  **Step 4:** Update Auth and Repository logic.
