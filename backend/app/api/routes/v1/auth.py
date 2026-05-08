@@ -106,26 +106,26 @@ async def github_oauth_callback(
 
         # 3. Fetch User's Installations for this App
         # This helps the frontend know which installation to use immediately
-        inst_url = "https://api.github.com/user/installations"
-        log.debug("fetching_user_installations", message="Fetching app installations for user", url=inst_url)
-        inst_response = await client.get(inst_url, headers=user_headers)
+        # inst_url = "https://api.github.com/user/installations"
+        # log.debug("fetching_user_installations", message="Fetching app installations for user", url=inst_url)
+        # inst_response = await client.get(inst_url, headers=user_headers)
         
-        installation_id = None
-        if inst_response.status_code == 200:
-            inst_data = inst_response.json()
-            installations = inst_data.get("installations", [])
-            print("installations_899900")
-            print(inst_data)
-            if installations:
-                # For simplicity in this demo, we take the first active installation
-                installation_id = installations[0].get("id")
-                log.info("user_installation_found", 
-                         installation_id=installation_id, 
-                         count=len(installations))
-        else:
-            log.warning("user_installations_fetch_failed", 
-                        status_code=inst_response.status_code,
-                        response=inst_response.text)
+        # installation_id = None
+        # if inst_response.status_code == 200:
+        #     inst_data = inst_response.json()
+        #     installations = inst_data.get("installations", [])
+        #     print("installations_899900")
+        #     print(inst_data)
+        #     if installations:
+        #         # For simplicity in this demo, we take the first active installation
+        #         installation_id = installations[0].get("id")
+        #         log.info("user_installation_found", 
+        #                  installation_id=installation_id, 
+        #                  count=len(installations))
+        # else:
+        #     log.warning("user_installations_fetch_failed", 
+        #                 status_code=inst_response.status_code,
+        #                 response=inst_response.text)
             
     # create user into database
     user_repo = UserRepo(db)
@@ -142,7 +142,9 @@ async def github_oauth_callback(
         data={
             "sub": user_data["login"], 
             "github_id": user_data["id"],
-            "user_id": user.id
+            "user_id": user.id,
+            "installation_id": None,
+            "role": "",
         }
     )
     log.info("local_jwt_generated", 
@@ -154,6 +156,6 @@ async def github_oauth_callback(
         "user": {
             "username": user_data["login"],
             "avatar_url": user_data["avatar_url"],
-            "installation_id": installation_id
+            "installation_id": None
         }
     }
