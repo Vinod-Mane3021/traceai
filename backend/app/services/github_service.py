@@ -2,6 +2,7 @@ import asyncio
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.github import PullRequestWebhookPayload
+from app.schemas.github_installation import GitHubAppInstallationEventPayload
 from app.repositories.github_repo import GitHubRepository
 from app.utils.diff_processor import parse_and_filter_diff
 from app.utils.github_client import AsyncGithubClient
@@ -190,4 +191,22 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
         # Here you would typically update the PR status in the DB to 'errored'
 
     return db_pr
-    
+
+
+async def handle_app_installation_event(payload: GitHubAppInstallationEventPayload, db: AsyncSession):
+    # Extract metadata from the Pydantic validated payload
+    installation_id = payload.installation.id
+    owner = payload.repository.owner.login
+    repo_name = payload.repository.name
+    head_sha = payload.pull_request.head.sha
+
+    print(f"Installation id: {installation_id}")
+    print(f"Owner: {owner}")
+    print(f"Repo: {repo_name}")
+    print(f"Head SHA: {head_sha}")
+
+
+    pass
+
+
+

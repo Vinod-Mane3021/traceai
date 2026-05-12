@@ -4,7 +4,8 @@ import structlog
 import traceback
 
 from app.api.dependencies import get_db
-from app.services.github_service import process_pull_request_event
+from app.schemas.github_installation import GitHubAppInstallationEventPayload
+from app.services.github_service import process_pull_request_event, handle_app_installation_event
 from app.utils.security import verify_github_signature
 from app.schemas.github import PullRequestWebhookPayload
 
@@ -23,20 +24,46 @@ async def handle_github_webhook(
     # 1. Verify it is actually from GitHub
     await verify_github_signature(request, x_hub_signature_256)
 
+    print(f"Received GitHub webhook event: {x_github_event}")
+
+    # Parse the raw JSON body
+    try:
+        row_payload = await request.json()
+        log = log.bind(action=row_payload.get("action"))
+    except Exception as e:
+        log.error("json_parse_failed", message="Failed to parse JSON body from webhook", error=str(e))
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+
     # 2. Handle the Ping event to verify the connection
     if x_github_event == "ping":
         log.info("github_ping_received", message="GitHub sent a ping event! Connection successful.")
         return {"status": "accepted", "message": "Ping received"}
+    
+    if x_github_event == "installation":
+
+        try:
+            # We parse the raw JSON body into our strict Pydantic model
+            payload = GitHubAppInstallationEventPayload(**row_payload)
+            log = log.bind(pr_number=payload.number, repo=payload.repository.full_name)
+        except Exception as e:
+            log.error("pydantic_validation_failed", message="Payload failed Pydantic validation", error=str(e))
+            raise HTTPException(status_code=422, detail="Invalid payload structure")
+        
+        try:
+            print("row_payload")
+            print(row_payload)
+            await handle_app_installation_event(payload, db)
+        except Exception as e:
+            log.error("handling_installation_event_error", 
+                      message="Error occurred while handling installation event",
+                      error_type=type(e).__name__, 
+                      error=str(e),
+                      traceback=traceback.format_exc())
+            raise HTTPException(status_code=500, detail=f"Internal server error: {type(e).__name__}")
 
     # 4. Handle PR events with Pydantic Validation
     if x_github_event == "pull_request":
-        # Parse the raw JSON body
-        try:
-            row_payload = await request.json()
-            log = log.bind(action=row_payload.get("action"))
-        except Exception as e:
-            log.error("json_parse_failed", message="Failed to parse JSON body from webhook", error=str(e))
-            raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
         try:
             # We parse the raw JSON body into our strict Pydantic model
