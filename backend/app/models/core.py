@@ -51,6 +51,7 @@ class Repository(Base):
     name = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     organization_id = Column(Integer, ForeignKey('organizations.id'))
+    is_private = Column(Boolean, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

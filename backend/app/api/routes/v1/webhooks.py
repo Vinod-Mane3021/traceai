@@ -33,12 +33,25 @@ async def handle_github_webhook(
     except Exception as e:
         log.error("json_parse_failed", message="Failed to parse JSON body from webhook", error=str(e))
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    
+    # print("row_payload")
+    # print(row_payload)
+
+    # print installation id
+    installation_id = row_payload.get("installation", {}).get("id")
+    print(f"Installation ID: {installation_id}")
+
+    
+
 
 
     # 2. Handle the Ping event to verify the connection
     if x_github_event == "ping":
         log.info("github_ping_received", message="GitHub sent a ping event! Connection successful.")
         return {"status": "accepted", "message": "Ping received"}
+    
+    if x_github_event == "installation_repositories":
+        pass
     
     if x_github_event == "installation":
 
@@ -51,8 +64,7 @@ async def handle_github_webhook(
             raise HTTPException(status_code=422, detail="Invalid payload structure")
         
         try:
-            print("row_payload")
-            print(row_payload)
+            
             await handle_app_installation_event(payload, db)
         except Exception as e:
             log.error("handling_installation_event_error", 

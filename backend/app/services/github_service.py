@@ -4,11 +4,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.github import PullRequestWebhookPayload
 from app.schemas.github_installation import GitHubAppInstallationEventPayload
 from app.repositories.github_repo import GitHubRepository
+from app.schemas.user import CreateUser
 from app.utils.diff_processor import parse_and_filter_diff
 from app.utils.github_client import AsyncGithubClient
 from app.services.ai_service import analyze_code_chunk
 from app.repositories.rule_repo import RuleRepository
 from app.repositories.vulnerability_repo import VulnerabilityRepo
+from app.repositories.organization_repo import OrganizationRepo
+from app.repositories.user_repo import UserRepo
+from app.repositories.organization_member_repo import OrganizationMemberRepo
+from app.repositories.repository_repo import RepositoryRepo
 
 logger = structlog.get_logger(__name__)
 
@@ -139,7 +144,6 @@ async def list_user_repositories(installation_id: int) -> list[dict]:
     github_client = AsyncGithubClient(installation_id=installation_id)
     return await github_client.list_repositories()
 
-
 async def process_pull_request_event(payload: PullRequestWebhookPayload, db: AsyncSession):
     """
     Core business logic for handling incoming PR webhook events.
@@ -194,19 +198,72 @@ async def process_pull_request_event(payload: PullRequestWebhookPayload, db: Asy
 
 
 async def handle_app_installation_event(payload: GitHubAppInstallationEventPayload, db: AsyncSession):
+
+    # Bind common context to all logs in this function
+    log = logger.bind(
+        installation_id=payload.installation.id,
+        account_login=payload.installation.account.login,
+        account_type=payload.installation.account.type,
+    )
+
     # Extract metadata from the Pydantic validated payload
     installation_id = payload.installation.id
     owner = payload.repository.owner.login
     repo_name = payload.repository.name
     head_sha = payload.pull_request.head.sha
 
-    print(f"Installation id: {installation_id}")
-    print(f"Owner: {owner}")
-    print(f"Repo: {repo_name}")
-    print(f"Head SHA: {head_sha}")
+    log.info("installation_event_received", message="Processing installation event.", installation_id=installation_id, owner=owner, repo_name=repo_name, head_sha=head_sha)
+
+    organization_repo = OrganizationRepo(db)
+    log.info("upsert_organization", message="Upsert organization based on installation event", github_installation_id=installation_id, org_name=payload.installation.account.login, org_type=payload.installation.account.type)
+    organization = await organization_repo.upsert_organization(installation_id, payload.installation.account.login, payload.installation.account.type)
+
+    user_repo = UserRepo(db)
+    user = await user_repo.get_user_by_github_id(payload.requester.id or payload.sender.id)
+
+    if not user:
+        # throw error
+        log.error("user_not_found", message="User not found in the database. User must trigger an event that creates their user record before installation events can be processed.", github_id=payload.requester.id or payload.sender.id)
+        raise Exception("User not found in the database. User must trigger an event that creates their user record before installation events can be processed.")
+
+    organization_member_repo = OrganizationMemberRepo(db)
+    log.info("upsert_organization_member", message="Upsert organization member record", user_id=user.id, organization_id=organization.id)
+    
+    if payload.requester.id:
+        await organization_member_repo.upsert_organization_member(user.id, organization.id, "MEMBER")
+    else:
+        await organization_member_repo.upsert_organization_member(user.id, organization.id, "ADMIN")
+
+    repository_repo = RepositoryRepo(db)
+    log.info("upsert_repository", message="Upsert repository record based on installation event", github_id=payload.repository.id, repo_name=payload.repository.name, full_name=payload.repository.full_name, is_private=payload.repository.private)
+
+    log.info("syncing_repositories", message=f"Syncing {len(payload.repositories)} repositories from installation event")
+    for repo in payload.repositories:
+        await repository_repo.upsert_repository(
+            github_id=repo.id,
+            name=repo.name,
+            full_name=repo.full_name,
+            organization_id=organization.id,
+            is_private=repo.private
+        )
+
+    await user_repo.update_user(user_id=user.id, last_active_org_id=organization.id)
+
+    
+    # check if the selected repo is from any organization the user belongs to
+    if payload.installation.account.type == "Organization":
+        
+        log.info("installation_is_for_organization", message="Installation is for an organization")
+        # create a new organization in the database if it doesn't exist, and link it to the installation ID
+    else:
+        log.info("installation_is_for_user", message="Installation is for a user")
 
 
-    pass
+
+
+
+
+
 
 
 

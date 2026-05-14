@@ -144,7 +144,7 @@ async def github_oauth_callback(
             "github_id": user_data["id"],
             "user_id": user.id,
             "installation_id": None,
-            "role": "",
+            "role": None,
         }
     )
     log.info("local_jwt_generated", 
